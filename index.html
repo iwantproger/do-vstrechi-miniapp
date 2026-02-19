@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Запись на встречу</title>
+  
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: var(--tg-theme-bg-color, #ffffff);
+      color: var(--tg-theme-text-color, #000000);
+      padding: 0;
+      overflow-x: hidden;
+    }
+    
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+    
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 24px 16px;
+      border-radius: 0 0 20px 20px;
+      color: white;
+      margin: -16px -16px 24px -16px;
+    }
+    
+    .header h1 {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    
+    .header p {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+    
+    /* Meeting Info Card */
+    .meeting-card {
+      background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+      padding: 20px;
+      border-radius: 16px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    .meeting-title {
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--tg-theme-text-color, #000);
+    }
+    
+    .meeting-meta {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      color: var(--tg-theme-hint-color, #999);
+    }
+    
+    .meeting-description {
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--tg-theme-text-color, #333);
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(0,0,0,0.1);
+    }
+    
+    /* Section Title */
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 32px 0 16px;
+      color: var(--tg-theme-text-color, #000);
+    }
+    
+    /* Calendar */
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    
+    .calendar-month {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .calendar-nav {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .calendar-nav button {
+      width: 36px;
+      height: 36px;
+      border: none;
+      background: var(--tg-theme-button-color, #0088cc);
+      color: var(--tg-theme-button-text-color, #fff);
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.2s;
+    }
+    
+    .calendar-nav button:hover {
+      opacity: 0.8;
+    }
+    
+    .calendar-nav button:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+    
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+    
+    .calendar-day-header {
+      text-align: center;
+      font-weight: 600;
+      padding: 8px 4px;
+      font-size: 12px;
+      color: var(--tg-theme-hint-color, #999);
+    }
+    
+    .calendar-day {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 15px;
+      font-weight: 500;
+      position: relative;
+      background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+    }
+    
+    .calendar-day.disabled {
+      color: var(--tg-theme-hint-color, #ccc);
+      cursor: not-allowed;
+      background: transparent;
+    }
+    
+    .calendar-day.available:hover {
+      background: var(--tg-theme-button-color, #0088cc);
+      color: var(--tg-theme-button-text-color, #fff);
+      transform: scale(1.05);
+    }
+    
+    .calendar-day.selected {
+      background: var(--tg-theme-button-color, #0088cc);
+      color: var(--tg-theme-button-text-color, #fff);
+      box-shadow: 0 4px 12px rgba(0, 136, 204, 0.4);
+    }
+    
+    .calendar-day.today {
+      border: 2px solid var(--tg-theme-button-color, #0088cc);
+    }
+    
+    /* Time Slots */
+    .time-slots {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    
+    .time-slot {
+      padding: 14px 8px;
+      border: 2px solid var(--tg-theme-hint-color, #ddd);
+      border-radius: 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+      font-size: 15px;
+      background: var(--tg-theme-bg-color, #fff);
+    }
+    
+    .time-slot:hover {
+      border-color: var(--tg-theme-button-color, #0088cc);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .time-slot.selected {
+      background: var(--tg-theme-button-color, #0088cc);
+      color: var(--tg-theme-button-text-color, #fff);
+      border-color: var(--tg-theme-button-color, #0088cc);
+      box-shadow: 0 4px 12px rgba(0, 136, 204, 0.4);
+    }
+    
+    /* Form */
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--tg-theme-text-color, #000);
+    }
+    
+    .form-label .required {
+      color: #ff3b30;
+    }
+    
+    .form-input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid var(--tg-theme-hint-color, #ddd);
+      border-radius: 12px;
+      font-size: 16px;
+      background: var(--tg-theme-bg-color, #fff);
+      color: var(--tg-theme-text-color, #000);
+      transition: border-color 0.2s;
+    }
+    
+    .form-input:focus {
+      outline: none;
+      border-color: var(--tg-theme-button-color, #0088cc);
+    }
+    
+    .form-input::placeholder {
+      color: var(--tg-theme-hint-color, #999);
+    }
+    
+    textarea.form-input {
+      resize: vertical;
+      min-height: 100px;
+      font-family: inherit;
+    }
+    
+    /* Loading & Error States */
+    .loading {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--tg-theme-hint-color, #999);
+    }
+    
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(0, 136, 204, 0.2);
+      border-top-color: var(--tg-theme-button-color, #0088cc);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .error {
+      background: #ffebee;
+      color: #c62828;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      border-left: 4px solid #c62828;
+    }
+    
+    .success {
+      background: #e8f5e9;
+      color: #2e7d32;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      border-left: 4px solid #2e7d32;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--tg-theme-hint-color, #999);
+    }
+    
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    
+    /* Hidden sections */
+    .hidden {
+      display: none;
+    }
+    
+    /* Summary */
+    .summary-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .summary-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      font-size: 15px;
+    }
+    
+    .summary-item:last-child {
+      margin-bottom: 0;
+    }
+    
+    .summary-icon {
+      font-size: 20px;
+    }
+    
+    /* Responsive */
+    @media (max-width: 480px) {
+      .calendar {
+        gap: 4px;
+      }
+      
+      .time-slots {
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        gap: 8px;
+      }
+      
+      .header h1 {
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📅 Запись на встречу</h1>
+      <p>Выберите удобное время</p>
+    </div>
+    
+    <div id="app">
+      <div class="loading">
+        <div class="loading-spinner"></div>
+        <p>Загрузка...</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ============================================
+    // КОНФИГУРАЦИЯ - ЗДЕСЬ ВСТАВЬ СВОИ ДАННЫЕ
+    // ============================================
+    
+    const CONFIG = {
+      // Supabase настройки (получишь после создания проекта)
+      SUPABASE_URL: 'https://your-project.supabase.co',
+      SUPABASE_ANON_KEY: 'your-anon-key-here',
+      
+      // Данные о встрече (пока демо-данные)
+      DEMO_MODE: true, // Поставь false когда подключишь Supabase
+    };
+    
+    // ============================================
+    // ИНИЦИАЛИЗАЦИЯ TELEGRAM WEB APP
+    // ============================================
+    
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.ready();
+      tg.expand();
+      tg.enableClosingConfirmation();
+    }
+    
+    // ============================================
+    // ГЛОБАЛЬНОЕ СОСТОЯНИЕ
+    // ============================================
+    
+    const state = {
+      meetingType: null,
+      currentMonth: new Date(),
+      selectedDate: null,
+      selectedTime: null,
+      availableSlots: [],
+      guestData: {
+        name: '',
+        contact: '',
+        notes: ''
+      }
+    };
+    
+    // ============================================
+    // DEMO ДАННЫЕ (когда DEMO_MODE = true)
+    // ============================================
+    
+    const DEMO_DATA = {
+      meetingType: {
+        id: 'demo-1',
+        title: 'Консультация',
+        description: 'Бесплатная 30-минутная консультация по вашему проекту',
+        duration: 30,
+        color: '#667eea'
+      },
+      
+      // Генерация доступных слотов (9:00 - 17:00 с шагом 30 минут)
+      generateSlots: (date) => {
+        const slots = [];
+        const dayOfWeek = date.getDay();
+        
+        // Только будние дни
+        if (dayOfWeek === 0 || dayOfWeek === 6) {
+          return [];
+        }
+        
+        for (let hour = 9; hour < 17; hour++) {
+          for (let minute = 0; minute < 60; minute += 30) {
+            const timeStr = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+            slots.push({
+              time: timeStr,
+              available: Math.random() > 0.3 // 70% слотов доступны
+            });
+          }
+        }
+        
+        return slots.filter(s => s.available);
+      }
+    };
+    
+    // ============================================
+    // API ФУНКЦИИ
+    // ============================================
+    
+    async function loadMeetingType(meetingTypeId) {
+      if (CONFIG.DEMO_MODE) {
+        // Демо режим
+        return DEMO_DATA.meetingType;
+      } else {
+        // Реальный API запрос к Supabase
+        const response = await fetch(
+          `${CONFIG.SUPABASE_URL}/rest/v1/meeting_types?id=eq.${meetingTypeId}`,
+          {
+            headers: {
+              'apikey': CONFIG.SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`
+            }
+          }
+        );
+        const data = await response.json();
+        return data[0];
+      }
+    }
+    
+    async function loadAvailableSlots(meetingTypeId, date) {
+      if (CONFIG.DEMO_MODE) {
+        // Демо режим
+        return DEMO_DATA.generateSlots(date);
+      } else {
+        // Реальный API запрос
+        const dateStr = date.toISOString().split('T')[0];
+        const response = await fetch(
+          `${CONFIG.SUPABASE_URL}/rest/v1/rpc/get_available_slots`,
+          {
+            method: 'POST',
+            headers: {
+              'apikey': CONFIG.SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              meeting_type_id: meetingTypeId,
+              target_date: dateStr
+            })
+          }
+        );
+        return await response.json();
+      }
+    }
+    
+    async function createBooking(bookingData) {
+      if (CONFIG.DEMO_MODE) {
+        // Демо режим - просто симулируем задержку
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return { success: true, id: 'demo-booking-' + Date.now() };
+      } else {
+        // Реальный API запрос
+        const response = await fetch(
+          `${CONFIG.SUPABASE_URL}/rest/v1/bookings`,
+          {
+            method: 'POST',
+            headers: {
+              'apikey': CONFIG.SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+              'Content-Type': 'application/json',
+              'Prefer': 'return=representation'
+            },
+            body: JSON.stringify(bookingData)
+          }
+        );
+        return await response.json();
+      }
+    }
+    
+    // ============================================
+    // RENDER ФУНКЦИИ
+    // ============================================
+    
+    function renderApp() {
+      const app = document.getElementById('app');
+      
+      app.innerHTML = `
+        ${state.error ? `<div class="error">${state.error}</div>` : ''}
+        
+        <div class="meeting-card">
+          <div class="meeting-title">${state.meetingType.title}</div>
+          <div class="meeting-meta">
+            <div class="meta-item">
+              <span>⏱</span>
+              <span>${state.meetingType.duration} минут</span>
+            </div>
+          </div>
+          ${state.meetingType.description ? 
+            `<div class="meeting-description">${state.meetingType.description}</div>` 
+            : ''}
+        </div>
+        
+        <div class="section-title">Выберите дату</div>
+        <div id="calendar-container"></div>
+        
+        <div id="time-slots-container" class="hidden">
+          <div class="section-title">Выберите время</div>
+          <div id="time-slots"></div>
+        </div>
+        
+        <div id="guest-form" class="hidden">
+          <div class="section-title">Ваши данные</div>
+          <form id="booking-form" onsubmit="handleSubmit(event)">
+            <div class="form-group">
+              <label class="form-label">
+                Ваше имя <span class="required">*</span>
+              </label>
+              <input 
+                type="text" 
+                class="form-input" 
+                id="guest-name" 
+                placeholder="Иван Иванов"
+                required
+              >
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">
+                Email или Telegram <span class="required">*</span>
+              </label>
+              <input 
+                type="text" 
+                class="form-input" 
+                id="guest-contact" 
+                placeholder="@username или email@example.com"
+                required
+              >
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">
+                Дополнительная информация
+              </label>
+              <textarea 
+                class="form-input" 
+                id="guest-notes"
+                placeholder="Что хотите обсудить?"
+              ></textarea>
+            </div>
+          </form>
+        </div>
+        
+        <div id="summary-container" class="hidden"></div>
+      `;
+      
+      renderCalendar();
+    }
+    
+    function renderCalendar() {
+      const container = document.getElementById('calendar-container');
+      const year = state.currentMonth.getFullYear();
+      const month = state.currentMonth.getMonth();
+      
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      const daysInMonth = lastDay.getDate();
+      const startDayOfWeek = firstDay.getDay();
+      
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const monthNames = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+                          'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+      
+      let html = `
+        <div class="calendar-header">
+          <div class="calendar-month">${monthNames[month]} ${year}</div>
+          <div class="calendar-nav">
+            <button onclick="changeMonth(-1)" ${month === today.getMonth() && year === today.getFullYear() ? 'disabled' : ''}>
+              ←
+            </button>
+            <button onclick="changeMonth(1)">→</button>
+          </div>
+        </div>
+        <div class="calendar">
+      `;
+      
+      // Заголовки дней
+      const dayHeaders = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+      dayHeaders.forEach(day => {
+        html += `<div class="calendar-day-header">${day}</div>`;
+      });
+      
+      // Пустые ячейки до начала месяца
+      const adjustedStartDay = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1;
+      for (let i = 0; i < adjustedStartDay; i++) {
+        html += '<div></div>';
+      }
+      
+      // Дни месяца
+      for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(year, month, day);
+        const isPast = date < today;
+        const isToday = date.getTime() === today.getTime();
+        const dateStr = date.toISOString().split('T')[0];
+        const isSelected = state.selectedDate === dateStr;
+        
+        let className = 'calendar-day';
+        if (isPast) {
+          className += ' disabled';
+        } else {
+          className += ' available';
+        }
+        if (isToday) className += ' today';
+        if (isSelected) className += ' selected';
+        
+        html += `
+          <div 
+            class="${className}" 
+            data-date="${dateStr}"
+            ${!isPast ? `onclick="selectDate('${dateStr}')"` : ''}
+          >
+            ${day}
+          </div>
+        `;
+      }
+      
+      html += '</div>';
+      container.innerHTML = html;
+    }
+    
+    function renderTimeSlots() {
+      const container = document.getElementById('time-slots-container');
+      const slotsEl = document.getElementById('time-slots');
+      
+      if (state.availableSlots.length === 0) {
+        container.classList.remove('hidden');
+        slotsEl.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">😔</div>
+            <p>На эту дату нет доступных слотов</p>
+          </div>
+        `;
+        return;
+      }
+      
+      container.classList.remove('hidden');
+      slotsEl.innerHTML = state.availableSlots.map(slot => {
+        const isSelected = state.selectedTime === slot.time;
+        return `
+          <div 
+            class="time-slot ${isSelected ? 'selected' : ''}" 
+            onclick="selectTime('${slot.time}')"
+          >
+            ${slot.time}
+          </div>
+        `;
+      }).join('');
+    }
+    
+    function renderSummary() {
+      const container = document.getElementById('summary-container');
+      
+      if (!state.selectedDate || !state.selectedTime) {
+        container.classList.add('hidden');
+        return;
+      }
+      
+      const date = new Date(state.selectedDate + 'T' + state.selectedTime);
+      const dateStr = date.toLocaleDateString('ru-RU', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      
+      container.classList.remove('hidden');
+      container.innerHTML = `
+        <div class="summary-card">
+          <div class="summary-item">
+            <span class="summary-icon">📅</span>
+            <span>${dateStr}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-icon">⏰</span>
+            <span>${state.selectedTime}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-icon">⏱</span>
+            <span>${state.meetingType.duration} минут</span>
+          </div>
+        </div>
+      `;
+    }
+    
+    // ============================================
+    // EVENT HANDLERS
+    // ============================================
+    
+    window.changeMonth = function(direction) {
+      state.currentMonth = new Date(
+        state.currentMonth.getFullYear(),
+        state.currentMonth.getMonth() + direction,
+        1
+      );
+      renderCalendar();
+    };
+    
+    window.selectDate = async function(dateStr) {
+      state.selectedDate = dateStr;
+      state.selectedTime = null;
+      state.availableSlots = [];
+      
+      // Обновить календарь
+      renderCalendar();
+      
+      // Показать загрузку
+      const slotsContainer = document.getElementById('time-slots-container');
+      slotsContainer.classList.remove('hidden');
+      document.getElementById('time-slots').innerHTML = `
+        <div class="loading">
+          <div class="loading-spinner"></div>
+          <p>Загрузка доступного времени...</p>
+        </div>
+      `;
+      
+      // Загрузить слоты
+      try {
+        const date = new Date(dateStr);
+        state.availableSlots = await loadAvailableSlots(state.meetingType.id, date);
+        renderTimeSlots();
+      } catch (error) {
+        showError('Не удалось загрузить доступное время');
+      }
+      
+      // Скрыть форму
+      document.getElementById('guest-form').classList.add('hidden');
+      renderSummary();
+    };
+    
+    window.selectTime = function(time) {
+      state.selectedTime = time;
+      renderTimeSlots();
+      
+      // Показать форму
+      document.getElementById('guest-form').classList.remove('hidden');
+      
+      // Обновить summary
+      renderSummary();
+      
+      // Настроить кнопку Telegram
+      if (tg) {
+        tg.MainButton.setText('Подтвердить бронирование');
+        tg.MainButton.show();
+        tg.MainButton.onClick(submitBooking);
+      }
+      
+      // Прокрутить к форме
+      document.getElementById('guest-form').scrollIntoView({ behavior: 'smooth' });
+    };
+    
+    window.handleSubmit = function(event) {
+      event.preventDefault();
+      submitBooking();
+    };
+    
+    async function submitBooking() {
+      // Получить данные формы
+      const name = document.getElementById('guest-name').value.trim();
+      const contact = document.getElementById('guest-contact').value.trim();
+      const notes = document.getElementById('guest-notes').value.trim();
+      
+      // Валидация
+      if (!name || !contact) {
+        showError('Пожалуйста, заполните обязательные поля');
+        return;
+      }
+      
+      if (!state.selectedDate || !state.selectedTime) {
+        showError('Пожалуйста, выберите дату и время');
+        return;
+      }
+      
+      // Показать прогресс
+      if (tg) {
+        tg.MainButton.showProgress();
+      }
+      
+      // Подготовить данные
+      const bookingData = {
+        meeting_type_id: state.meetingType.id,
+        guest_name: name,
+        guest_contact: contact,
+        guest_telegram_id: tg?.initDataUnsafe?.user?.id || null,
+        scheduled_time: `${state.selectedDate}T${state.selectedTime}:00`,
+        notes: notes || null,
+        status: 'pending'
+      };
+      
+      try {
+        const result = await createBooking(bookingData);
+        
+        // Скрыть прогресс
+        if (tg) {
+          tg.MainButton.hideProgress();
+        }
+        
+        // Показать успех
+        showSuccess();
+        
+        // Через 2 секунды закрыть или показать финальный экран
+        setTimeout(() => {
+          if (tg) {
+            tg.close();
+          } else {
+            showFinalScreen();
+          }
+        }, 2000);
+        
+      } catch (error) {
+        if (tg) {
+          tg.MainButton.hideProgress();
+        }
+        showError('Не удалось создать бронирование. Попробуйте еще раз.');
+      }
+    }
+    
+    function showError(message) {
+      state.error = message;
+      renderApp();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+      setTimeout(() => {
+        state.error = null;
+        renderApp();
+      }, 5000);
+    }
+    
+    function showSuccess() {
+      const app = document.getElementById('app');
+      app.innerHTML = `
+        <div class="success">
+          <h2 style="margin-bottom: 12px;">✅ Встреча успешно забронирована!</h2>
+          <p>Организатор получит уведомление и свяжется с вами для подтверждения.</p>
+        </div>
+        
+        <div class="summary-card">
+          <div class="summary-item">
+            <span class="summary-icon">📅</span>
+            <span>${new Date(state.selectedDate).toLocaleDateString('ru-RU', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-icon">⏰</span>
+            <span>${state.selectedTime}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-icon">👤</span>
+            <span>${state.guestData.name || document.getElementById('guest-name').value}</span>
+          </div>
+        </div>
+      `;
+    }
+    
+    function showFinalScreen() {
+      const app = document.getElementById('app');
+      app.innerHTML = `
+        <div style="text-align: center; padding: 60px 20px;">
+          <div style="font-size: 64px; margin-bottom: 20px;">🎉</div>
+          <h2 style="margin-bottom: 12px;">Готово!</h2>
+          <p style="color: var(--tg-theme-hint-color, #999);">
+            Вы можете закрыть это окно
+          </p>
+        </div>
+      `;
+    }
+    
+    // ============================================
+    // ИНИЦИАЛИЗАЦИЯ
+    // ============================================
+    
+    async function init() {
+      try {
+        // Получить ID типа встречи из URL или Telegram data
+        const urlParams = new URLSearchParams(window.location.search);
+        const meetingTypeId = urlParams.get('meeting_type') || 
+                             tg?.initDataUnsafe?.start_param?.replace('book_', '') ||
+                             'demo-1';
+        
+        // Загрузить данные о встрече
+        state.meetingType = await loadMeetingType(meetingTypeId);
+        
+        // Отрендерить приложение
+        renderApp();
+        
+        // Применить тему Telegram
+        if (tg) {
+          document.body.style.backgroundColor = tg.themeParams.bg_color || '#ffffff';
+        }
+        
+      } catch (error) {
+        console.error('Initialization error:', error);
+        document.getElementById('app').innerHTML = `
+          <div class="error">
+            <h3>Ошибка загрузки</h3>
+            <p>${error.message}</p>
+          </div>
+        `;
+      }
+    }
+    
+    // Запуск при загрузке страницы
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  </script>
+</body>
+</html>
