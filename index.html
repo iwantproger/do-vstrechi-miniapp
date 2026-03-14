@@ -299,10 +299,15 @@
     .success {
       background: #e8f5e9;
       color: #2e7d32;
-      padding: 16px;
+      padding: 20px;
       border-radius: 12px;
       margin-bottom: 16px;
       border-left: 4px solid #2e7d32;
+    }
+
+    .success h2 {
+      margin-bottom: 12px;
+      font-size: 20px;
     }
     
     .empty-state {
@@ -345,6 +350,19 @@
     .summary-icon {
       font-size: 20px;
     }
+
+    .meeting-link {
+      background: rgba(255,255,255,0.2);
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 12px;
+      word-break: break-all;
+    }
+
+    .meeting-link a {
+      color: white;
+      text-decoration: underline;
+    }
     
     /* Responsive */
     @media (max-width: 480px) {
@@ -380,13 +398,12 @@
 
   <script>
     // ============================================
-    // КОНФИГУРАЦИЯ - ЗДЕСЬ ВСТАВЬ СВОИ ДАННЫЕ
+    // КОНФИГУРАЦИЯ
     // ============================================
-  
+    
     const CONFIG = {
-  BACKEND_API_URL: 'https://do-vstrechi-backend-production.up.railway.app',
-  DEMO_MODE: false
-};
+      BACKEND_API_URL: 'https://do-vstrechi-backend-production.up.railway.app'
+    };
     
     // ============================================
     // ИНИЦИАЛИЗАЦИЯ TELEGRAM WEB APP
@@ -413,118 +430,69 @@
         name: '',
         contact: '',
         notes: ''
-      }
-    };
-    
-    // ============================================
-    // DEMO ДАННЫЕ (когда DEMO_MODE = true)
-    // ============================================
-    
-    const DEMO_DATA = {
-      meetingType: {
-        id: 'demo-1',
-        title: 'Консультация',
-        description: 'Бесплатная 30-минутная консультация по вашему проекту',
-        duration: 30,
-        color: '#667eea'
       },
-      
-      // Генерация доступных слотов (9:00 - 17:00 с шагом 30 минут)
-      generateSlots: (date) => {
-        const slots = [];
-        const dayOfWeek = date.getDay();
-        
-        // Только будние дни
-        if (dayOfWeek === 0 || dayOfWeek === 6) {
-          return [];
-        }
-        
-        for (let hour = 9; hour < 17; hour++) {
-          for (let minute = 0; minute < 60; minute += 30) {
-            const timeStr = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
-            slots.push({
-              time: timeStr,
-              available: Math.random() > 0.3 // 70% слотов доступны
-            });
-          }
-        }
-        
-        return slots.filter(s => s.available);
-      }
+      error: null
     };
     
     // ============================================
     // API ФУНКЦИИ
     // ============================================
     
-    async function loadMeetingType(meetingTypeId) {
-      if (CONFIG.DEMO_MODE) {
-        // Демо режим
-        return DEMO_DATA.meetingType;
-      } else {
-        // Реальный API запрос к Supabase
-        const response = await fetch(
-          `${CONFIG.SUPABASE_URL}/rest/v1/meeting_types?id=eq.${meetingTypeId}`,
-          {
-            headers: {
-              'apikey': CONFIG.SUPABASE_ANON_KEY,
-              'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`
-            }
-          }
-        );
-        const data = await response.json();
-        return data[0];
+    async function loadMeetingType(scheduleId) {
+      const response = await fetch(
+        `${CONFIG.BACKEND_API_URL}/api/schedules/${scheduleId}`
+      );
+      
+      if (!response.ok) {
+        throw new Error('Не удалось загрузить данные расписания');
       }
+      
+      const data = await response.json();
+      
+      return {
+        id: data.id,
+        title: data.title,
+        description: data.description || '',
+        duration: data.duration,
+        buffer_time: data.buffer_time,
+        work_days: data.work_days,
+        color: '#667eea'
+      };
     }
     
-    async function loadAvailableSlots(meetingTypeId, date) {
-      if (CONFIG.DEMO_MODE) {
-        // Демо режим
-        return DEMO_DATA.generateSlots(date);
-      } else {
-        // Реальный API запрос
-        const dateStr = date.toISOString().split('T')[0];
-        const response = await fetch(
-          `${CONFIG.SUPABASE_URL}/rest/v1/rpc/get_available_slots`,
-          {
-            method: 'POST',
-            headers: {
-              'apikey': CONFIG.SUPABASE_ANON_KEY,
-              'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              meeting_type_id: meetingTypeId,
-              target_date: dateStr
-            })
-          }
-        );
-        return await response.json();
+    async function loadAvailableSlots(scheduleId, date) {
+      const dateStr = date.toISOString().split('T')[0];
+      
+      const response = await fetch(
+        `${CONFIG.BACKEND_API_URL}/api/available-slots/${scheduleId}?date=${dateStr}`
+      );
+      
+      if (!response.ok) {
+        throw new Error('Не удалось загрузить доступные слоты');
       }
+      
+      const data = await response.json();
+      return data.available_slots || [];
     }
     
     async function createBooking(bookingData) {
-      if (CONFIG.DEMO_MODE) {
-        // Демо режим - просто симулируем задержку
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        return { success: true, id: 'demo-booking-' + Date.now() };
-      } else {
-        // Реальный API запрос
-        const response = await fetch(
-          `${CONFIG.SUPABASE_URL}/rest/v1/bookings`,
-          {
-            method: 'POST',
-            headers: {
-              'apikey': CONFIG.SUPABASE_ANON_KEY,
-              'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
-              'Content-Type': 'application/json',
-              'Prefer': 'return=representation'
-            },
-            body: JSON.stringify(bookingData)
-          }
-        );
-        return await response.json();
+      const response = await fetch(
+        `${CONFIG.BACKEND_API_URL}/api/bookings`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(bookingData)
+        }
+      );
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Не удалось создать бронирование');
       }
+      
+      return await response.json();
     }
     
     // ============================================
@@ -635,28 +603,27 @@
         <div class="calendar">
       `;
       
-      // Заголовки дней
       const dayHeaders = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
       dayHeaders.forEach(day => {
         html += `<div class="calendar-day-header">${day}</div>`;
       });
       
-      // Пустые ячейки до начала месяца
       const adjustedStartDay = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1;
       for (let i = 0; i < adjustedStartDay; i++) {
         html += '<div></div>';
       }
       
-      // Дни месяца
       for (let day = 1; day <= daysInMonth; day++) {
         const date = new Date(year, month, day);
         const isPast = date < today;
         const isToday = date.getTime() === today.getTime();
         const dateStr = date.toISOString().split('T')[0];
         const isSelected = state.selectedDate === dateStr;
+        const dayOfWeek = date.getDay() === 0 ? 6 : date.getDay() - 1;
+        const isWorkDay = state.meetingType.work_days.includes(dayOfWeek);
         
         let className = 'calendar-day';
-        if (isPast) {
+        if (isPast || !isWorkDay) {
           className += ' disabled';
         } else {
           className += ' available';
@@ -668,7 +635,7 @@
           <div 
             class="${className}" 
             data-date="${dateStr}"
-            ${!isPast ? `onclick="selectDate('${dateStr}')"` : ''}
+            ${!isPast && isWorkDay ? `onclick="selectDate('${dateStr}')"` : ''}
           >
             ${day}
           </div>
@@ -761,10 +728,8 @@
       state.selectedTime = null;
       state.availableSlots = [];
       
-      // Обновить календарь
       renderCalendar();
       
-      // Показать загрузку
       const slotsContainer = document.getElementById('time-slots-container');
       slotsContainer.classList.remove('hidden');
       document.getElementById('time-slots').innerHTML = `
@@ -774,16 +739,14 @@
         </div>
       `;
       
-      // Загрузить слоты
       try {
         const date = new Date(dateStr);
         state.availableSlots = await loadAvailableSlots(state.meetingType.id, date);
         renderTimeSlots();
       } catch (error) {
-        showError('Не удалось загрузить доступное время');
+        showError('Не удалось загрузить доступное время: ' + error.message);
       }
       
-      // Скрыть форму
       document.getElementById('guest-form').classList.add('hidden');
       renderSummary();
     };
@@ -792,20 +755,31 @@
       state.selectedTime = time;
       renderTimeSlots();
       
-      // Показать форму
       document.getElementById('guest-form').classList.remove('hidden');
       
-      // Обновить summary
+      // Автозаполнение из Telegram
+      if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+        const user = tg.initDataUnsafe.user;
+        const nameInput = document.getElementById('guest-name');
+        const contactInput = document.getElementById('guest-contact');
+        
+        if (!nameInput.value && user.first_name) {
+          nameInput.value = user.first_name + (user.last_name ? ' ' + user.last_name : '');
+        }
+        
+        if (!contactInput.value && user.username) {
+          contactInput.value = '@' + user.username;
+        }
+      }
+      
       renderSummary();
       
-      // Настроить кнопку Telegram
       if (tg) {
         tg.MainButton.setText('Подтвердить бронирование');
         tg.MainButton.show();
         tg.MainButton.onClick(submitBooking);
       }
       
-      // Прокрутить к форме
       document.getElementById('guest-form').scrollIntoView({ behavior: 'smooth' });
     };
     
@@ -815,12 +789,10 @@
     };
     
     async function submitBooking() {
-      // Получить данные формы
       const name = document.getElementById('guest-name').value.trim();
       const contact = document.getElementById('guest-contact').value.trim();
       const notes = document.getElementById('guest-notes').value.trim();
       
-      // Валидация
       if (!name || !contact) {
         showError('Пожалуйста, заполните обязательные поля');
         return;
@@ -831,47 +803,40 @@
         return;
       }
       
-      // Показать прогресс
       if (tg) {
         tg.MainButton.showProgress();
       }
       
-      // Подготовить данные
       const bookingData = {
-        meeting_type_id: state.meetingType.id,
+        schedule_id: state.meetingType.id,
         guest_name: name,
         guest_contact: contact,
         guest_telegram_id: tg?.initDataUnsafe?.user?.id || null,
         scheduled_time: `${state.selectedDate}T${state.selectedTime}:00`,
-        notes: notes || null,
-        status: 'pending'
+        notes: notes || null
       };
       
       try {
         const result = await createBooking(bookingData);
         
-        // Скрыть прогресс
         if (tg) {
           tg.MainButton.hideProgress();
+          tg.MainButton.hide();
         }
         
-        // Показать успех
-        showSuccess();
+        showSuccess(result);
         
-        // Через 2 секунды закрыть или показать финальный экран
         setTimeout(() => {
           if (tg) {
             tg.close();
-          } else {
-            showFinalScreen();
           }
-        }, 2000);
+        }, 3000);
         
       } catch (error) {
         if (tg) {
           tg.MainButton.hideProgress();
         }
-        showError('Не удалось создать бронирование. Попробуйте еще раз.');
+        showError('Ошибка: ' + error.message);
       }
     }
     
@@ -886,47 +851,50 @@
       }, 5000);
     }
     
-    function showSuccess() {
+    function showSuccess(booking) {
       const app = document.getElementById('app');
+      
+      const date = new Date(booking.scheduled_time);
+      const dateStr = date.toLocaleDateString('ru-RU', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      const timeStr = date.toLocaleTimeString('ru-RU', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      
       app.innerHTML = `
         <div class="success">
-          <h2 style="margin-bottom: 12px;">✅ Встреча успешно забронирована!</h2>
-          <p>Организатор получит уведомление и свяжется с вами для подтверждения.</p>
+          <h2>✅ Встреча успешно забронирована!</h2>
+          <p>Вы получите подтверждение от организатора.</p>
         </div>
         
         <div class="summary-card">
           <div class="summary-item">
             <span class="summary-icon">📅</span>
-            <span>${new Date(state.selectedDate).toLocaleDateString('ru-RU', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            })}</span>
+            <span>${dateStr}</span>
           </div>
           <div class="summary-item">
             <span class="summary-icon">⏰</span>
-            <span>${state.selectedTime}</span>
+            <span>${timeStr}</span>
           </div>
           <div class="summary-item">
             <span class="summary-icon">👤</span>
-            <span>${state.guestData.name || document.getElementById('guest-name').value}</span>
+            <span>${booking.guest_name}</span>
           </div>
+          ${booking.meeting_link ? `
+            <div class="meeting-link">
+              <div style="margin-bottom: 8px;">🎥 <strong>Ссылка на встречу:</strong></div>
+              <a href="${booking.meeting_link}" target="_blank">${booking.meeting_link}</a>
+            </div>
+          ` : ''}
         </div>
       `;
-    }
-    
-    function showFinalScreen() {
-      const app = document.getElementById('app');
-      app.innerHTML = `
-        <div style="text-align: center; padding: 60px 20px;">
-          <div style="font-size: 64px; margin-bottom: 20px;">🎉</div>
-          <h2 style="margin-bottom: 12px;">Готово!</h2>
-          <p style="color: var(--tg-theme-hint-color, #999);">
-            Вы можете закрыть это окно
-          </p>
-        </div>
-      `;
+      
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     
     // ============================================
@@ -935,19 +903,17 @@
     
     async function init() {
       try {
-        // Получить ID типа встречи из URL или Telegram data
         const urlParams = new URLSearchParams(window.location.search);
-        const meetingTypeId = urlParams.get('meeting_type') || 
-                             tg?.initDataUnsafe?.start_param?.replace('book_', '') ||
-                             'demo-1';
+        const scheduleId = urlParams.get('schedule_id');
         
-        // Загрузить данные о встрече
-        state.meetingType = await loadMeetingType(meetingTypeId);
+        if (!scheduleId) {
+          throw new Error('Не указан ID расписания');
+        }
         
-        // Отрендерить приложение
+        state.meetingType = await loadMeetingType(scheduleId);
+        
         renderApp();
         
-        // Применить тему Telegram
         if (tg) {
           document.body.style.backgroundColor = tg.themeParams.bg_color || '#ffffff';
         }
@@ -963,7 +929,6 @@
       }
     }
     
-    // Запуск при загрузке страницы
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', init);
     } else {
