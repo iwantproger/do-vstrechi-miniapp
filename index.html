@@ -565,6 +565,16 @@
                 placeholder="Что хотите обсудить?"
               ></textarea>
             </div>
+            
+            <button 
+              type="submit" 
+              id="submit-button"
+              style="width: 100%; padding: 16px; background: var(--tg-theme-button-color, #0088cc); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: opacity 0.2s;"
+              onmouseover="this.style.opacity='0.8'"
+              onmouseout="this.style.opacity='1'"
+            >
+              Подтвердить бронирование
+            </button>
           </form>
         </div>
         
@@ -774,10 +784,15 @@
       
       renderSummary();
       
-      if (tg) {
+      // Если Telegram WebApp доступен - используем MainButton
+      if (tg && tg.MainButton) {
         tg.MainButton.setText('Подтвердить бронирование');
         tg.MainButton.show();
         tg.MainButton.onClick(submitBooking);
+        
+        // Скрываем обычную кнопку в Telegram
+        const submitBtn = document.getElementById('submit-button');
+        if (submitBtn) submitBtn.style.display = 'none';
       }
       
       document.getElementById('guest-form').scrollIntoView({ behavior: 'smooth' });
