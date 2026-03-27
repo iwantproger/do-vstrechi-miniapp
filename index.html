@@ -5,797 +5,850 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>До встречи</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
-    :root{--bg:#0C1220;--surface:#141B2D;--surface2:#1C2640;--border:rgba(255,255,255,.07);
-      --border2:rgba(255,255,255,.13);--text:#F0F2F8;--text2:#8B92A5;--text3:rgba(255,255,255,.2);
-      --accent:#3B82F6;--accent2:#60A5FA;--success:#22C55E;--warning:#F59E0B;--error:#EF4444;
-      --r-md:12px;--r-lg:14px;--r-xl:18px;--pad:16px;}
-    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-    html,body{height:100%;overflow:hidden;}
-    body{font-family:'DM Sans',-apple-system,sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.5;}
-    #app{width:100%;height:100%;overflow:hidden;position:relative;}
-    .screen{position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;
-      transform:translateX(100%);transition:transform 260ms cubic-bezier(.4,0,.2,1);background:var(--bg);}
-    .screen.active{transform:translateX(0);}
-    .screen.out{transform:translateX(-28%);}
-    .sb{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
-      padding:var(--pad);padding-bottom:96px;}
-    .hdr{display:flex;align-items:center;gap:10px;padding:12px var(--pad) 10px;
-      border-bottom:1px solid var(--border);flex-shrink:0;min-height:52px;}
-    .hb{width:36px;height:36px;border-radius:10px;background:var(--surface);
-      border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;
-      cursor:pointer;color:var(--accent2);font-size:18px;flex-shrink:0;transition:opacity .15s;}
-    .hb:active{opacity:.6;}
-    .hi{flex:1;min-width:0;}
-    .ht{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--text);
-      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .hs{font-size:12px;color:var(--text2);margin-top:1px;}
-    .btm{position:sticky;bottom:0;padding:12px var(--pad) 24px;
-      background:linear-gradient(to top,var(--bg) 65%,transparent);flex-shrink:0;}
-    .btn{width:100%;padding:15px 20px;border-radius:var(--r-lg);border:none;
-      font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;
-      display:flex;align-items:center;justify-content:center;gap:8px;
-      transition:transform .1s,opacity .1s;}
-    .btn:active:not(:disabled){transform:scale(.97);opacity:.88;}
-    .btn:disabled{opacity:.3;cursor:not-allowed;}
-    .btn-p{background:var(--accent);color:#fff;box-shadow:0 4px 14px rgba(59,130,246,.26);}
-    .btn-s{background:#16A34A;color:#fff;box-shadow:0 4px 14px rgba(22,163,74,.22);}
-    .btn-g{background:var(--surface);color:var(--text);border:1px solid var(--border2);}
-    .btn-d{background:rgba(239,68,68,.1);color:#FCA5A5;border:1px solid rgba(239,68,68,.22);}
-    /* HOME */
-    #screen-home .sb{padding-top:0;}
-    .htop{padding:26px var(--pad) 18px;}
-    .hw{font-size:28px;margin-bottom:8px;}
-    .hn{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;}
-    .hss{font-size:14px;color:var(--text2);margin-top:3px;}
-    .mb{display:flex;align-items:center;gap:13px;padding:14px var(--pad);
-      border-radius:var(--r-xl);border:1px solid var(--border2);margin-bottom:10px;
-      cursor:pointer;transition:opacity .15s,transform .1s;}
-    .mb:active{transform:scale(.98);opacity:.84;}
-    .mb.bl{background:rgba(59,130,246,.07);border-color:rgba(59,130,246,.17);}
-    .mb.gr{background:rgba(34,197,94,.06);border-color:rgba(34,197,94,.15);}
-    .mb.pu{background:rgba(139,92,246,.06);border-color:rgba(139,92,246,.15);}
-    .mb.or{background:rgba(245,158,11,.06);border-color:rgba(245,158,11,.15);}
-    .mbi{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;
-      justify-content:center;font-size:20px;flex-shrink:0;}
-    .bl .mbi{background:rgba(59,130,246,.18);} .gr .mbi{background:rgba(34,197,94,.14);}
-    .pu .mbi{background:rgba(139,92,246,.16);} .or .mbi{background:rgba(245,158,11,.14);}
-    .mbt{flex:1;} .mbt-h{font-size:14px;font-weight:600;}
-    .bl .mbt-h{color:#93C5FD;} .gr .mbt-h{color:#86EFAC;}
-    .pu .mbt-h{color:#C4B5FD;} .or .mbt-h{color:#FCD34D;}
-    .mbt-s{font-size:12px;color:var(--text2);margin-top:2px;}
-    /* SPECIALIST */
-    .sc{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-md);
-      padding:13px;display:flex;align-items:center;gap:12px;margin-bottom:18px;}
-    .av{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#8B5CF6);
-      display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;
-      font-weight:700;font-size:14px;color:#fff;flex-shrink:0;}
-    /* CALENDAR */
-    .ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
-    .cm{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;}
-    .cn{display:flex;gap:7px;}
-    .cnb{width:31px;height:31px;border-radius:9px;border:1px solid var(--border2);
-      background:var(--surface);color:var(--text);font-size:15px;
-      display:flex;align-items:center;justify-content:center;cursor:pointer;transition:opacity .14s;}
-    .cnb:active{opacity:.6;} .cnb:disabled{opacity:.25;cursor:not-allowed;}
-    .cg{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:18px;}
-    .cdow{text-align:center;font-size:11px;font-weight:600;color:var(--text2);padding:5px 0;}
-    .cd{aspect-ratio:1;display:flex;align-items:center;justify-content:center;
-      border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;transition:all .14s;}
-    .cd.dim{color:rgba(255,255,255,.16);cursor:not-allowed;background:transparent;}
-    .cd.av{background:rgba(34,197,94,.11);color:#86EFAC;}
-    .cd.av:active{transform:scale(.92);}
-    .cd.tod{border:1.5px solid var(--accent);}
-    .cd.sel{background:var(--accent)!important;color:#fff!important;box-shadow:0 3px 12px rgba(59,130,246,.36);}
-    /* SLOTS */
-    .slbl{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;
-      letter-spacing:.08em;margin-bottom:10px;}
-    .sg{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:15px;}
-    .sl{padding:12px 6px;border-radius:var(--r-md);border:1.5px solid var(--border2);
-      text-align:center;font-size:14px;font-weight:600;color:var(--text);
-      background:var(--surface);cursor:pointer;transition:all .14s;}
-    .sl:active{transform:scale(.94);}
-    .sl.sel{background:var(--accent);border-color:var(--accent);color:#fff;
-      box-shadow:0 3px 12px rgba(59,130,246,.3);}
-    /* FORM */
-    .fg{margin-bottom:16px;}
-    .fl{display:block;font-size:13px;font-weight:500;color:var(--text2);margin-bottom:7px;}
-    .fl .rq{color:var(--error);}
-    .fi{width:100%;padding:13px 14px;border:1.5px solid var(--border2);border-radius:var(--r-md);
-      background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;
-      font-size:15px;transition:border-color .14s;outline:none;}
-    .fi:focus{border-color:var(--accent);} .fi::placeholder{color:var(--text3);}
-    .fi.er{border-color:var(--error);}
-    textarea.fi{resize:vertical;min-height:80px;line-height:1.5;}
-    .ferr{font-size:12px;color:#FCA5A5;margin-top:4px;display:none;}
-    .ferr.show{display:block;}
-    .ro{display:flex;align-items:center;gap:11px;padding:12px 13px;
-      border-radius:var(--r-md);border:1.5px solid var(--border2);background:var(--surface);
-      margin-bottom:7px;cursor:pointer;transition:all .14s;}
-    .ro:active{transform:scale(.98);}
-    .ro.sel{border-color:var(--accent);background:rgba(59,130,246,.07);}
-    .rd{width:17px;height:17px;border-radius:50%;border:2px solid var(--border2);
-      flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .14s;}
-    .ro.sel .rd{border-color:var(--accent);background:var(--accent);}
-    .ro.sel .rd::after{content:'';width:6px;height:6px;border-radius:50%;background:#fff;}
-    .rla{font-size:14px;font-weight:500;color:var(--text);flex:1;}
-    .scard{background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.17);
-      border-radius:var(--r-md);padding:13px;margin-bottom:18px;}
-    .scard-d{font-size:14px;font-weight:600;color:#86EFAC;}
-    .scard-t{font-size:13px;color:var(--text2);margin-top:3px;}
-    /* SUCCESS */
-    .okw{text-align:center;padding:28px 0 16px;}
-    .oki{width:68px;height:68px;border-radius:50%;background:rgba(34,197,94,.13);
-      display:flex;align-items:center;justify-content:center;font-size:32px;
-      margin:0 auto 13px;animation:pop .4s cubic-bezier(.34,1.56,.64,1) forwards;}
-    @keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
-    .okt{font-family:'Syne',sans-serif;font-size:19px;font-weight:800;margin-bottom:5px;}
-    .oks{font-size:14px;color:var(--text2);line-height:1.6;}
-    /* DETAIL CARD */
-    .dc{background:var(--surface);border:1px solid var(--border2);
-      border-radius:var(--r-md);overflow:hidden;margin:14px 0;}
-    .dcs{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
-      color:var(--text2);padding:9px 13px 4px;}
-    .dcr{display:flex;align-items:center;gap:10px;padding:10px 13px;
-      border-top:1px solid var(--border);}
-    .dcr:first-of-type{border-top:none;}
-    .dci{font-size:14px;width:18px;flex-shrink:0;}
-    .dcv{font-size:14px;color:var(--text);flex:1;}
-    .dcl{font-size:12px;color:var(--accent2);cursor:pointer;flex-shrink:0;}
-    /* BADGES */
-    .bg{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;
-      border-radius:20px;font-size:12px;font-weight:500;}
-    .b-p{background:rgba(245,158,11,.11);color:#FCD34D;}
-    .b-c{background:rgba(34,197,94,.11);color:#86EFAC;}
-    .b-x{background:rgba(239,68,68,.1);color:#FCA5A5;}
-    .b-d{background:rgba(255,255,255,.06);color:var(--text2);}
-    /* TABS */
-    .tabs{display:flex;gap:7px;padding-bottom:13px;}
-    .tab{flex:1;padding:9px 5px;border-radius:var(--r-md);text-align:center;
-      font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .14s;}
-    .tab.on{background:var(--accent);color:#fff;}
-    .tab.off{background:var(--surface);color:var(--text2);border:1px solid var(--border2);}
-    /* MEETING CARD */
-    .mc{background:var(--surface);border-radius:var(--r-md);padding:13px;margin-bottom:9px;
-      border:1px solid var(--border);border-left-width:3px;cursor:pointer;transition:transform .1s;}
-    .mc:active{transform:scale(.99);}
-    .mc.c{border-left-color:var(--success);} .mc.p{border-left-color:var(--warning);}
-    .mc.x{border-left-color:rgba(239,68,68,.4);} .mc.d{border-left-color:rgba(255,255,255,.16);}
-    .mc-t{font-size:14px;font-weight:600;margin-bottom:3px;}
-    .mc-r{font-size:12px;color:var(--text2);margin-bottom:2px;}
-    .mc-f{display:flex;align-items:center;justify-content:space-between;margin-top:8px;}
-    .mc-a{display:flex;gap:7px;margin-top:9px;}
-    .mcb{flex:1;padding:8px 7px;border-radius:9px;border:1px solid var(--border2);
-      background:var(--surface2);color:var(--text);font-size:12px;font-weight:500;
-      text-align:center;cursor:pointer;transition:opacity .14s;font-family:'DM Sans',sans-serif;}
-    .mcb:active{opacity:.6;}
-    .mcb.red{border-color:rgba(239,68,68,.2);color:#FCA5A5;background:rgba(239,68,68,.06);}
-    /* SCHEDULE CARD */
-    .schc{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-md);
-      padding:13px;margin-bottom:9px;cursor:pointer;transition:transform .1s,opacity .1s;}
-    .schc:active{transform:scale(.98);opacity:.84;}
-    .schc-t{font-size:14px;font-weight:600;margin-bottom:4px;}
-    .schc-m{font-size:12px;color:var(--text2);}
-    .schc-f{display:flex;align-items:center;justify-content:space-between;margin-top:10px;}
-    .schc-l{font-size:12px;color:var(--accent2);cursor:pointer;}
-    /* INCOMING */
-    .ibc{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-md);
-      padding:13px;margin-bottom:9px;}
-    .ibc-n{font-size:14px;font-weight:600;}
-    .ibc-m{font-size:12px;color:var(--text2);margin-top:3px;}
-    /* SETTINGS */
-    .ss{background:var(--surface);border-radius:var(--r-md);border:1px solid var(--border);
-      overflow:hidden;margin-bottom:10px;}
-    .sr{display:flex;align-items:center;padding:13px;border-top:1px solid var(--border);gap:11px;}
-    .sr:first-child{border-top:none;}
-    .si{font-size:17px;width:25px;text-align:center;flex-shrink:0;}
-    .sl{flex:1;font-size:14px;color:var(--text);}
-    .sv{font-size:12px;color:var(--text2);}
-    .pr{display:flex;align-items:center;gap:13px;padding:15px 13px;}
-    .tgl{width:40px;height:22px;border-radius:11px;position:relative;
-      cursor:pointer;transition:background .18s;flex-shrink:0;}
-    .tgl.on{background:var(--accent);} .tgl.off{background:rgba(255,255,255,.13);}
-    .tgl::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;
-      background:#fff;top:3px;transition:left .18s;}
-    .tgl.on::after{left:21px;} .tgl.off::after{left:3px;}
-    .ssep{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;
-      text-transform:uppercase;letter-spacing:.1em;color:var(--text2);padding:16px 0 9px;}
-    /* STATES */
-    .spin{width:38px;height:38px;border:2.5px solid rgba(255,255,255,.07);
-      border-top-color:var(--accent);border-radius:50%;animation:sp .9s linear infinite;margin:0 auto 13px;}
-    @keyframes sp{to{transform:rotate(360deg)}}
-    .lc{display:flex;flex-direction:column;align-items:center;justify-content:center;
-      padding:50px 20px;text-align:center;color:var(--text2);font-size:14px;}
-    .emp{text-align:center;padding:34px 20px;color:var(--text2);}
-    .emp-i{font-size:42px;margin-bottom:11px;}
-    .emp-t{font-size:15px;font-weight:600;color:var(--text);margin-bottom:5px;}
-    .emp-d{font-size:13px;line-height:1.6;margin-bottom:16px;}
-    /* TOAST */
-    #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(64px);
-      background:#1A2540;border:1px solid var(--border2);color:var(--text);
-      padding:10px 17px;border-radius:var(--r-md);font-size:14px;font-weight:500;
-      z-index:9999;transition:transform .26s cubic-bezier(.34,1.56,.64,1);
-      white-space:nowrap;box-shadow:0 6px 24px rgba(0,0,0,.32);}
-    #toast.show{transform:translateX(-50%) translateY(0);}
-    #toast.err{background:rgba(239,68,68,.13);border-color:rgba(239,68,68,.26);color:#FCA5A5;}
-    /* MODAL */
-    .mo{position:fixed;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(4px);
-      z-index:200;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .22s;}
-    .mo.show{opacity:1;pointer-events:all;}
-    .mox{background:var(--surface);border-radius:20px 20px 0 0;padding:20px var(--pad) 32px;
-      width:100%;transform:translateY(100%);transition:transform .27s cubic-bezier(.4,0,.2,1);
-      border-top:1px solid var(--border2);}
-    .mo.show .mox{transform:translateY(0);}
-    .moh{width:32px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 17px;}
-    .mot{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;margin-bottom:8px;}
-    .mod{font-size:14px;color:var(--text2);line-height:1.6;margin-bottom:17px;}
-    /* TIMELINE */
-    .tl{padding:3px 0;}
-    .tli{display:flex;gap:10px;padding:5px 0;position:relative;}
-    .tli::before{content:'';position:absolute;left:6px;top:20px;bottom:-5px;
-      width:1.5px;background:var(--border);}
-    .tli:last-child::before{display:none;}
-    .tld{width:14px;height:14px;border-radius:50%;background:var(--success);
-      flex-shrink:0;margin-top:2px;}
-    .tld.er{background:var(--error);}
-    .tlt{font-size:13px;color:var(--text);}
-    .tldtt{font-size:11px;color:var(--text2);}
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: var(--tg-theme-bg-color, #ffffff);
+      color: var(--tg-theme-text-color, #000000);
+      overflow-x: hidden;
+    }
+
+    .container { max-width: 600px; margin: 0 auto; padding: 16px; }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 24px 16px;
+      border-radius: 0 0 20px 20px;
+      color: white;
+      margin: -16px -16px 24px -16px;
+    }
+    .header h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+    .header p { font-size: 13px; opacity: 0.9; }
+
+    /* Back button — Issue 5 */
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: none;
+      color: var(--tg-theme-button-color, #0088cc);
+      font-size: 14px;
+      cursor: pointer;
+      padding: 8px 0;
+      margin-bottom: 12px;
+    }
+    .back-btn:active { opacity: 0.6; }
+
+    .meeting-card {
+      background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+      padding: 16px;
+      border-radius: 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .meeting-title { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+    .meeting-meta { display: flex; gap: 16px; flex-wrap: wrap; }
+    .meta-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--tg-theme-hint-color, #999); }
+    .meeting-description { font-size: 13px; line-height: 1.5; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.08); }
+
+    .section-title { font-size: 17px; font-weight: 600; margin: 24px 0 14px; }
+
+    /* Calendar */
+    .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .calendar-month { font-size: 17px; font-weight: 600; }
+    .calendar-nav { display: flex; gap: 10px; }
+    .calendar-nav button {
+      width: 34px; height: 34px; border: none;
+      background: var(--tg-theme-button-color, #0088cc);
+      color: var(--tg-theme-button-text-color, #fff);
+      border-radius: 50%; cursor: pointer; font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .calendar-nav button:disabled { opacity: 0.3; cursor: not-allowed; }
+    .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 20px; }
+    .calendar-day-header { text-align: center; font-weight: 600; padding: 6px 2px; font-size: 11px; color: var(--tg-theme-hint-color, #999); }
+    .calendar-day {
+      aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+      border-radius: 10px; cursor: pointer; transition: all 0.15s;
+      font-size: 14px; font-weight: 500;
+      background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+    }
+    .calendar-day.disabled { color: var(--tg-theme-hint-color, #ccc); cursor: not-allowed; background: transparent; }
+    .calendar-day.available:hover { background: var(--tg-theme-button-color, #0088cc); color: white; transform: scale(1.05); }
+    .calendar-day.selected { background: var(--tg-theme-button-color, #0088cc); color: white; box-shadow: 0 4px 12px rgba(0,136,204,0.35); }
+    .calendar-day.today { border: 2px solid var(--tg-theme-button-color, #0088cc); }
+
+    /* Time slots */
+    .time-slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 10px; margin-bottom: 20px; }
+    .time-slot {
+      padding: 13px 6px; border: 2px solid var(--tg-theme-hint-color, #ddd);
+      border-radius: 10px; text-align: center; cursor: pointer;
+      transition: all 0.15s; font-weight: 500; font-size: 14px;
+      background: var(--tg-theme-bg-color, #fff);
+      user-select: none; -webkit-tap-highlight-color: transparent;
+    }
+    .time-slot:active { transform: scale(0.95); }
+    .time-slot:hover { border-color: var(--tg-theme-button-color, #0088cc); }
+    .time-slot.selected {
+      background: var(--tg-theme-button-color, #0088cc);
+      color: white; border-color: var(--tg-theme-button-color, #0088cc);
+      box-shadow: 0 4px 12px rgba(0,136,204,0.35);
+    }
+
+    /* Form */
+    .form-group { margin-bottom: 18px; }
+    .form-label { display: block; margin-bottom: 7px; font-weight: 600; font-size: 13px; }
+    .form-label .required { color: #ff3b30; }
+    .form-input {
+      width: 100%; padding: 13px 15px;
+      border: 2px solid var(--tg-theme-hint-color, #ddd);
+      border-radius: 10px; font-size: 15px;
+      background: var(--tg-theme-bg-color, #fff);
+      color: var(--tg-theme-text-color, #000);
+      transition: border-color 0.2s;
+    }
+    .form-input:focus { outline: none; border-color: var(--tg-theme-button-color, #0088cc); }
+    textarea.form-input { resize: vertical; min-height: 90px; font-family: inherit; }
+
+    /* Submit button */
+    .submit-btn {
+      width: 100%; padding: 17px;
+      background: var(--tg-theme-button-color, #0088cc);
+      color: var(--tg-theme-button-text-color, white);
+      border: none; border-radius: 12px;
+      font-size: 17px; font-weight: 700; cursor: pointer;
+      margin-top: 18px;
+      box-shadow: 0 4px 14px rgba(0,136,204,0.3);
+      transition: opacity 0.2s;
+    }
+    .submit-btn:active { opacity: 0.8; transform: scale(0.98); }
+    .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    /* States */
+    .loading { text-align: center; padding: 50px 20px; color: var(--tg-theme-hint-color, #999); }
+    .loading-spinner {
+      width: 44px; height: 44px;
+      border: 4px solid rgba(0,136,204,0.2);
+      border-top-color: var(--tg-theme-button-color, #0088cc);
+      border-radius: 50%; animation: spin 0.8s linear infinite;
+      margin: 0 auto 14px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error {
+      background: #ffebee; color: #c62828;
+      padding: 14px; border-radius: 10px; margin-bottom: 14px;
+      border-left: 4px solid #c62828; font-size: 14px;
+    }
+    .error h3 { margin-bottom: 6px; }
+
+    .success {
+      background: #e8f5e9; color: #2e7d32;
+      padding: 18px; border-radius: 12px; margin-bottom: 14px;
+      border-left: 4px solid #2e7d32;
+    }
+    .success h2 { margin-bottom: 10px; font-size: 19px; }
+
+    .empty-state { text-align: center; padding: 36px 20px; color: var(--tg-theme-hint-color, #999); }
+    .empty-state-icon { font-size: 44px; margin-bottom: 14px; }
+
+    .hidden { display: none; }
+
+    .summary-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white; padding: 18px; border-radius: 14px; margin-bottom: 20px;
+    }
+    .summary-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 14px; }
+    .summary-item:last-child { margin-bottom: 0; }
+    .summary-icon { font-size: 18px; }
+    .meeting-link { background: rgba(255,255,255,0.2); padding: 10px; border-radius: 8px; margin-top: 10px; word-break: break-all; }
+    .meeting-link a { color: white; text-decoration: underline; }
+
+    /* Cabinet styles — Issue 4 */
+    .cabinet-section { margin-bottom: 28px; }
+    .cabinet-schedule-card {
+      background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+      border-radius: 14px; padding: 16px; margin-bottom: 12px;
+    }
+    .cabinet-schedule-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+    .cabinet-schedule-meta { font-size: 13px; color: var(--tg-theme-hint-color, #888); margin-bottom: 12px; }
+    .cabinet-btn-row { display: flex; gap: 8px; }
+    .cabinet-btn {
+      flex: 1; padding: 10px 8px;
+      border-radius: 9px; font-size: 13px; font-weight: 600;
+      cursor: pointer; border: none; text-align: center;
+      transition: opacity 0.15s;
+    }
+    .cabinet-btn:active { opacity: 0.7; }
+    .cabinet-btn-primary {
+      background: var(--tg-theme-button-color, #0088cc);
+      color: var(--tg-theme-button-text-color, white);
+    }
+    .cabinet-btn-secondary {
+      background: transparent;
+      color: var(--tg-theme-button-color, #0088cc);
+      border: 2px solid var(--tg-theme-button-color, #0088cc) !important;
+    }
+
+    @media (max-width: 380px) {
+      .calendar { gap: 3px; }
+      .time-slots { grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 7px; }
+    }
   </style>
 </head>
 <body>
-<div id="app">
-
-  <!-- HOME -->
-  <div id="screen-home" class="screen active">
-    <div class="sb">
-      <div class="htop">
-        <div class="hw">👋</div>
-        <div class="hn" id="gn">Привет!</div>
-        <div class="hss" id="gs">Что хочешь сделать?</div>
-      </div>
-      <div style="padding:0 var(--pad)" id="home-btns">
-        <div class="mb bl" onclick="goBook()">
-          <div class="mbi">📅</div>
-          <div class="mbt"><div class="mbt-h">Выбрать встречу</div>
-            <div class="mbt-s">Записаться к специалисту</div></div>
-        </div>
-        <div class="mb gr" onclick="nav('meetings')">
-          <div class="mbi">📋</div>
-          <div class="mbt"><div class="mbt-h">Мои встречи</div>
-            <div class="mbt-s">Предстоящие и прошедшие</div></div>
-        </div>
-        <div class="mb or" id="btn-sched" style="display:none" onclick="nav('schedules')">
-          <div class="mbi">🗂</div>
-          <div class="mbt"><div class="mbt-h">Мои расписания</div>
-            <div class="mbt-s">Входящие записи от клиентов</div></div>
-        </div>
-        <div class="mb pu" onclick="nav('settings')">
-          <div class="mbi">⚙️</div>
-          <div class="mbt"><div class="mbt-h">Настройки</div>
-            <div class="mbt-s">Профиль и уведомления</div></div>
-        </div>
-      </div>
-    </div>
+<div class="container">
+  <div class="header">
+    <h1>📅 До встречи</h1>
+    <p id="header-subtitle">Запись на встречу</p>
   </div>
 
-  <!-- CALENDAR -->
-  <div id="screen-cal" class="screen">
-    <div class="hdr">
-      <div class="hb" onclick="back()">←</div>
-      <div class="hi"><div class="ht" id="cal-t">Выбор времени</div><div class="hs" id="cal-s"></div></div>
-    </div>
-    <div class="sb" id="cal-body">
-      <div class="lc"><div class="spin"></div><div>Загрузка...</div></div>
-    </div>
-  </div>
-
-  <!-- FORM -->
-  <div id="screen-form" class="screen">
-    <div class="hdr">
-      <div class="hb" onclick="back()">←</div>
-      <div class="hi"><div class="ht">Подтверждение</div><div class="hs" id="form-s"></div></div>
-    </div>
-    <div class="sb">
-      <div class="scard"><div class="scard-d" id="fd"></div><div class="scard-t" id="ft"></div></div>
-      <div class="fg">
-        <label class="fl">Ваше имя <span class="rq">*</span></label>
-        <input type="text" class="fi" id="inp-n" placeholder="Иван Иванов" maxlength="50" onblur="vf('n')">
-        <div class="ferr" id="err-n">Минимум 2 символа</div>
-      </div>
-      <div class="fg">
-        <label class="fl">Email <span style="color:var(--text2)">(необязательно)</span></label>
-        <input type="email" class="fi" id="inp-e" placeholder="ivan@mail.ru" onblur="vf('e')">
-        <div class="ferr" id="err-e">Некорректный email</div>
-      </div>
-      <div id="plat-g" class="fg" style="display:none">
-        <label class="fl" style="margin-bottom:10px">Место встречи <span class="rq">*</span></label>
-        <div id="plat-o"></div>
-      </div>
-      <div class="fg">
-        <label class="fl">Комментарий</label>
-        <textarea class="fi" id="inp-no" placeholder="Что хотите обсудить?"></textarea>
-      </div>
-    </div>
-    <div class="btm">
-      <button class="btn btn-s" id="btn-book" onclick="submitBooking()">Забронировать</button>
-    </div>
-  </div>
-
-  <!-- SUCCESS -->
-  <div id="screen-ok" class="screen">
-    <div class="sb">
-      <div class="okw">
-        <div class="oki" id="ok-i">✅</div>
-        <div class="okt" id="ok-t">Встреча забронирована!</div>
-        <div class="oks" id="ok-s">Вы получите напоминание в Telegram</div>
-      </div>
-      <div class="dc">
-        <div class="dcs">Детали встречи</div>
-        <div class="dcr"><div class="dci">📅</div><div class="dcv" id="s-date"></div></div>
-        <div class="dcr"><div class="dci">⏰</div><div class="dcv" id="s-time"></div></div>
-        <div class="dcr"><div class="dci">⏱</div><div class="dcv" id="s-dur"></div></div>
-        <div class="dcr" id="s-pr" style="display:none">
-          <div class="dci">🎥</div><div class="dcv" id="s-pl"></div>
-          <div class="dcl" onclick="cpLink()">Копировать ссылку</div>
-        </div>
-      </div>
-      <div id="s-pend" style="display:none;margin-bottom:14px">
-        <div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.18);
-          border-radius:var(--r-md);padding:13px">
-          <div style="color:#FCD34D;font-weight:600;font-size:14px;margin-bottom:3px">Ожидает подтверждения</div>
-          <div style="color:var(--text2);font-size:13px">Специалист одобрит — придёт уведомление в Telegram</div>
-        </div>
-      </div>
-      <div style="display:flex;gap:9px;padding-bottom:14px">
-        <button class="btn btn-p" style="flex:1" onclick="closeTG()">Открыть Telegram</button>
-        <button class="btn btn-g" style="flex:1" onclick="goRoot()">На главную</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MEETINGS -->
-  <div id="screen-meetings" class="screen">
-    <div class="hdr">
-      <div class="hb" onclick="back()">←</div>
-      <div class="hi"><div class="ht">Мои встречи</div></div>
-    </div>
-    <div class="sb">
-      <div class="tabs">
-        <button class="tab on" onclick="switchTab('up',this)">Предстоящие</button>
-        <button class="tab off" onclick="switchTab('hist',this)">История</button>
-        <button class="tab off" onclick="switchTab('all',this)">Все</button>
-      </div>
-      <div id="ml"><div class="lc"><div class="spin"></div><div>Загрузка...</div></div></div>
-    </div>
-  </div>
-
-  <!-- DETAIL -->
-  <div id="screen-detail" class="screen">
-    <div class="hdr">
-      <div class="hb" onclick="back()">←</div>
-      <div class="hi"><div class="ht">Детали встречи</div></div>
-    </div>
-    <div class="sb" id="detail-b"></div>
-  </div>
-
-  <!-- MY SCHEDULES -->
-  <div id="screen-schedules" class="screen">
-    <div class="hdr">
-      <div class="hb" onclick="back()">←</div>
-      <div class="hi"><div class="ht">Мои расписания</div></div>
-    </div>
-    <div class="sb">
-      <div class="tabs">
-        <button class="tab on" onclick="switchST('s',this)">Расписания</button>
-        <button class="tab off" onclick="switchST('i',this)">Входящие записи</button>
-      </div>
-      <div id="sl"><div class="lc"><div class="spin"></div><div>Загрузка...</div></div></div>
-    </div>
-  </div>
-
-  <!-- SETTINGS -->
-  <div id="screen-settings" class="screen">
-    <div class="hdr">
-      <div class="hb" onclick="back()">←</div>
-      <div class="hi"><div class="ht">Настройки</div></div>
-    </div>
-    <div class="sb">
-      <div class="ss">
-        <div class="pr">
-          <div class="av" id="sav">?</div>
-          <div>
-            <div style="font-size:15px;font-weight:600" id="s-nm">—</div>
-            <div style="font-size:12px;color:var(--text2)" id="s-un"></div>
-          </div>
-        </div>
-      </div>
-      <div class="ssep">Уведомления</div>
-      <div class="ss">
-        <div class="sr"><div class="si">🔔</div><div class="sl">Telegram-уведомления</div>
-          <div class="tgl on" id="t-no" onclick="tog('no')"></div></div>
-        <div class="sr"><div class="si">⏰</div><div class="sl">За 24 часа до встречи</div>
-          <div class="tgl on" id="t-24" onclick="tog('24')"></div></div>
-        <div class="sr"><div class="si">⏱</div><div class="sl">За 1 час до встречи</div>
-          <div class="tgl on" id="t-1h" onclick="tog('1h')"></div></div>
-      </div>
-      <div class="ssep">О приложении</div>
-      <div class="ss">
-        <div class="sr"><div class="si">ℹ️</div><div class="sl">Версия</div><div class="sv">1.1</div></div>
-        <div class="sr" style="cursor:pointer" onclick="hlp()">
-          <div class="si">📞</div><div class="sl" style="color:var(--accent2)">Написать в поддержку</div></div>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-<div id="toast"></div>
-
-<div id="mo" class="mo" onclick="cmo(event)">
-  <div class="mox">
-    <div class="moh"></div>
-    <div class="mot">Отменить встречу?</div>
-    <div class="mod" id="mo-t">Встреча будет отменена.</div>
-    <div style="display:flex;gap:9px">
-      <button class="btn btn-g" style="flex:1" onclick="cmo()">Назад</button>
-      <button class="btn btn-d" style="flex:1" onclick="doCancel()">Отменить встречу</button>
+  <div id="app">
+    <div class="loading">
+      <div class="loading-spinner"></div>
+      <p>Загрузка...</p>
     </div>
   </div>
 </div>
 
 <script>
-'use strict';
-const API='https://do-vstrechi-backend-production.up.railway.app';
-const PL=[{id:'jitsi',n:'Jitsi Meet',i:'🎥'},{id:'zoom',n:'Zoom',i:'💼'},
-  {id:'google_meet',n:'Google Meet',i:'📹'},{id:'yandex',n:'Яндекс.Телемост',i:'🦊'},{id:'mts',n:'МТС Линк',i:'📡'}];
-const MOS=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
-const GEN=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
-const DAYS=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
-const DAYF=['Понедельник','Вторник','Среда','Четверг','Пятница','Суббота','Воскресенье'];
+// ============================================================
+// CONFIG
+// ============================================================
+const CONFIG = {
+  BACKEND_API_URL: 'https://do-vstrechi-backend-production.up.railway.app'
+};
 
-const tg=window.Telegram?.WebApp; let TGU=null;
-if(tg){tg.ready();tg.expand();tg.enableClosingConfirmation();TGU=tg.initDataUnsafe?.user||null;}
+// ============================================================
+// TELEGRAM INIT
+// ============================================================
+const tg = window.Telegram?.WebApp;
+if (tg) {
+  tg.ready();
+  tg.expand();
+}
 
-const S={scr:'home',stk:[],sch:null,date:null,time:null,plat:null,
-  mon:new Date(),msl:{},allM:[],tab:'up',scheds:[],schtab:'s',incB:[],
-  cid:null,mlink:null,sets:{no:true,'24':true,'1h':true}};
+// ============================================================
+// STATE
+// ============================================================
+const state = {
+  mode: null,            // 'booking' | 'cabinet'
+  meetingType: null,
+  currentMonth: new Date(),
+  selectedDate: null,
+  selectedTime: null,
+  availableSlots: [],
+  error: null,
+  // back-stack for Issue 5
+  step: 'calendar'       // 'calendar' | 'slots' | 'form'
+};
 
-async function init(){
-  try{const sv=localStorage.getItem('dv_s');if(sv)S.sets={...S.sets,...JSON.parse(sv)};}catch(e){}
-  applySets();
-  if(TGU){
-    document.getElementById('gn').textContent=`Привет, ${TGU.first_name}!`;
-    document.getElementById('s-nm').textContent=[TGU.first_name,TGU.last_name].filter(Boolean).join(' ');
-    document.getElementById('s-un').textContent=TGU.username?`@${TGU.username}`:`ID: ${TGU.id}`;
-    document.getElementById('sav').textContent=((TGU.first_name||'')[0]||'')+((TGU.last_name||'')[0]||'')||'👤';
-    authU(); checkOrg();
+// ============================================================
+// API
+// ============================================================
+async function apiFetch(path, options = {}) {
+  const response = await fetch(`${CONFIG.BACKEND_API_URL}${path}`, {
+    headers: { 'Content-Type': 'application/json' },
+    ...options
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.detail || `HTTP ${response.status}`);
   }
-  const p=new URLSearchParams(location.search), sid=p.get('schedule_id');
-  if(sid) await loadSch(sid); else show('home',false);
+  return response.json();
 }
 
-async function authU(){
-  if(!TGU)return;
-  try{await post('/api/users/auth',{telegram_id:TGU.id,username:TGU.username,first_name:TGU.first_name,last_name:TGU.last_name});}catch(e){}
-}
-async function checkOrg(){
-  if(!TGU)return;
-  try{const r=await get(`/api/schedules?telegram_id=${TGU.id}`);
-    if(r?.schedules?.length){S.scheds=r.schedules;document.getElementById('btn-sched').style.display='flex';}}catch(e){}
-}
-
-function show(id,push=true){
-  const cur=document.getElementById('screen-'+S.scr),nxt=document.getElementById('screen-'+id);
-  if(!nxt)return;if(push&&S.scr!==id)S.stk.push(S.scr);
-  if(cur&&cur!==nxt){cur.classList.remove('active');if(push)cur.classList.add('out');setTimeout(()=>cur.classList.remove('out'),280);}
-  nxt.classList.add('active');S.scr=id;
-  if(tg){if(S.stk.length){tg.BackButton.show();tg.BackButton.onClick(back);}else tg.BackButton.hide();}
-}
-function back(){
-  if(!S.stk.length)return;const prev=S.stk.pop();
-  const c=document.getElementById('screen-'+S.scr),p=document.getElementById('screen-'+prev);
-  if(!p)return;c.classList.remove('active');p.classList.remove('out');p.classList.add('active');S.scr=prev;
-  if(tg&&!S.stk.length)tg.BackButton.hide();
-}
-function goRoot(){
-  S.stk=[];document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active','out'));
-  document.getElementById('screen-home').classList.add('active');S.scr='home';
-  if(tg)tg.BackButton.hide();
-}
-function nav(t){
-  if(t==='meetings'){show('meetings');loadMeetings();}
-  else if(t==='schedules'){show('schedules');loadScheds();}
-  else if(t==='settings')show('settings');
-}
-function goBook(){
-  if(!S.sch){toast('Получи ссылку от специалиста или создай расписание в боте');return;}
-  show('cal');renderCalScreen();
+async function loadMeetingType(scheduleId) {
+  const data = await apiFetch(`/api/schedules/${scheduleId}`);
+  return {
+    id: data.id,
+    title: data.title,
+    description: data.description || '',
+    duration: data.duration,
+    buffer_time: data.buffer_time,
+    work_days: data.work_days,
+    work_hours_start: data.work_hours_start || '09:00',
+    work_hours_end: data.work_hours_end || '18:00',
+  };
 }
 
-async function get(p){const r=await fetch(API+p);const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.detail||r.status);return d;}
-async function post(p,b){const r=await fetch(API+p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.detail||r.status);return d;}
-async function patch(p,b={}){const r=await fetch(API+p,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.detail||r.status);return d;}
+async function loadAvailableSlots(scheduleId, date) {
+  const dateStr = formatDateLocal(date);
+  const data = await apiFetch(`/api/available-slots/${scheduleId}?date=${dateStr}`);
 
-async function loadSch(id){
-  document.getElementById('cal-body').innerHTML='<div class="lc"><div class="spin"></div><div>Загрузка...</div></div>';
-  show('cal',false);
-  try{S.sch=await get(`/api/schedules/${id}`);S.mon=new Date();S.msl={};renderCalScreen();}
-  catch(e){document.getElementById('cal-body').innerHTML=`<div class="emp"><div class="emp-i">😔</div><div class="emp-t">Расписание не найдено</div><div class="emp-d">Возможно, специалист его удалил</div><button class="btn btn-g" onclick="goRoot()" style="max-width:190px;margin:0 auto">На главную</button></div>`;}
-}
+  let slots = data.available_slots || [];
 
-function renderCalScreen(){
-  const sch=S.sch;
-  document.getElementById('cal-t').textContent=sch.title||'Выбор времени';
-  document.getElementById('cal-s').textContent=sch.duration+' мин';
-  document.getElementById('cal-body').innerHTML=`
-    <div class="sc"><div class="av">${(sch.title||'??').slice(0,2).toUpperCase()}</div>
-      <div><div style="font-size:15px;font-weight:600">${esc(sch.title)}</div>
-        <div style="font-size:12px;color:var(--text2)">${sch.duration} мин${sch.buffer_time?' · перерыв '+sch.buffer_time+' мин':''}</div></div></div>
-    <div id="ci"></div><div id="ss"></div>`;
-  rCal();loadMSl();
-}
-function rCal(){
-  const y=S.mon.getFullYear(),m=S.mon.getMonth();
-  const tod=new Date();tod.setHours(0,0,0,0);
-  const pd=y===tod.getFullYear()&&m<=tod.getMonth();
-  let h=`<div class="ch"><div class="cm">${MOS[m]} ${y}</div><div class="cn">
-    <button class="cnb" onclick="chMo(-1)" ${pd?'disabled':''}>&#8249;</button>
-    <button class="cnb" onclick="chMo(1)">&#8250;</button></div></div><div class="cg">`;
-  DAYS.forEach(d=>{h+=`<div class="cdow">${d}</div>`;});
-  const fd=new Date(y,m,1).getDay(),off=fd===0?6:fd-1;
-  for(let i=0;i<off;i++)h+='<div></div>';
-  const dim=new Date(y,m+1,0).getDate();
-  for(let d=1;d<=dim;d++){
-    const dt=new Date(y,m,d),ip=dt<tod,it=dt.getTime()===tod.getTime(),ds=d2s(dt),isel=S.date===ds;
-    const jd=dt.getDay(),di=jd===0?6:jd-1,iw=(S.sch?.work_days||[0,1,2,3,4]).includes(di);
-    let cls='cd';
-    if(ip||!iw)cls+=' dim';else if(S.msl[ds])cls+=' av';
-    if(it)cls+=' tod';if(isel)cls+=' sel';
-    h+=`<div class="${cls}"${(!ip&&iw)?` onclick="selDay('${ds}')"`:''}>${d}</div>`;
+  // Issue 3: Filter past slots for today using USER'S local time
+  const today = new Date();
+  const todayStr = formatDateLocal(today);
+  if (dateStr === todayStr) {
+    const nowH = today.getHours();
+    const nowM = today.getMinutes();
+    slots = slots.filter(slot => {
+      const [h, m] = slot.time.split(':').map(Number);
+      // Add 5 min buffer so slot at "current minute" isn't shown
+      return h > nowH || (h === nowH && m > nowM + 5);
+    });
   }
-  h+='</div>';
-  const el=document.getElementById('ci');if(el)el.innerHTML=h;
-}
-async function loadMSl(){
-  const wd=S.sch?.work_days||[0,1,2,3,4],y=S.mon.getFullYear(),m=S.mon.getMonth();
-  const tod=new Date();tod.setHours(0,0,0,0);
-  const dim=new Date(y,m+1,0).getDate(),chk=[];
-  for(let d=1;d<=dim;d++){const dt=new Date(y,m,d);if(dt<tod)continue;const di=dt.getDay()===0?6:dt.getDay()-1;if(wd.includes(di))chk.push(d2s(dt));}
-  try{const res=await Promise.allSettled(chk.slice(0,5).map(d=>get(`/api/available-slots/${S.sch.id}?date=${d}`)));
-    res.forEach((r,i)=>{S.msl[chk[i]]=r.status==='fulfilled'&&(r.value.available_slots||[]).length>0;});}catch(e){}
-  chk.forEach(d=>{if(!(d in S.msl))S.msl[d]=true;});rCal();
-}
-function chMo(dir){
-  const d=new Date(S.mon);d.setMonth(d.getMonth()+dir);
-  const tod=new Date();if(dir<0&&d<new Date(tod.getFullYear(),tod.getMonth(),1))return;
-  S.mon=d;S.date=null;rCal();loadMSl();
-}
-async function selDay(ds){
-  S.date=ds;S.time=null;rCal();
-  if(tg?.HapticFeedback)tg.HapticFeedback.impactOccurred('light');
-  const el=document.getElementById('ss');
-  el.innerHTML='<div class="lc" style="padding:22px 0"><div class="spin" style="width:26px;height:26px;border-width:2px"></div></div>';
-  try{
-    const r=await get(`/api/available-slots/${S.sch.id}?date=${ds}`);
-    const slots=r.available_slots||[];
-    const dt=new Date(ds),dn=DAYF[dt.getDay()===0?6:dt.getDay()-1];
-    const dl=`${dn}, ${dt.getDate()} ${GEN[dt.getMonth()]}`;
-    if(!slots.length){el.innerHTML=`<div class="slbl">${dl}</div><div class="emp" style="padding:14px 0"><div class="emp-i" style="font-size:28px">😔</div><div style="font-size:13px;color:var(--text2)">Нет свободных слотов на этот день</div></div>`;return;}
-    let h=`<div class="slbl">${dl}</div><div class="sg">`;
-    slots.forEach(s=>{h+=`<div class="sl${S.time===s.time?' sel':''}" onclick="selTime('${s.time}')">${s.time}</div>`;});
-    h+='</div>';
-    h+=S.time?`<button class="btn btn-p" onclick="goForm()">Продолжить</button>`:`<button class="btn btn-p" disabled>Выберите время</button>`;
-    el.innerHTML=h;
-  }catch(e){el.innerHTML=`<div class="emp" style="padding:18px 0"><div style="font-size:13px;color:#FCA5A5">Ошибка загрузки</div><button class="btn btn-g" style="max-width:140px;margin:10px auto 0" onclick="selDay('${ds}')">Повторить</button></div>`;}
-}
-function selTime(t){S.time=t;if(tg?.HapticFeedback)tg.HapticFeedback.impactOccurred('medium');selDay(S.date);}
-function goForm(){if(!S.time||!S.date)return;setupForm();show('form');}
 
-function setupForm(){
-  const sch=S.sch,d=new Date(S.date);
-  const dn=DAYF[d.getDay()===0?6:d.getDay()-1],dur=sch.duration||30;
-  document.getElementById('form-s').textContent=sch.title||'';
-  document.getElementById('fd').textContent=`📅 ${dn}, ${d.getDate()} ${GEN[d.getMonth()]}`;
-  const[h,mn]=S.time.split(':').map(Number),em=h*60+mn+dur,eh=Math.floor(em/60)%24,emn=em%60;
-  document.getElementById('ft').textContent=`⏰ ${S.time} — ${p2(eh)}:${p2(emn)} (${dur} мин)`;
-  const ni=document.getElementById('inp-n');
-  if(!ni.value&&TGU)ni.value=[TGU.first_name,TGU.last_name].filter(Boolean).join(' ');
-  const lm=sch.location_mode||'fixed';
-  if(lm==='user_choice'||!sch.video_platform){
-    document.getElementById('plat-g').style.display='block';
-    S.plat=PL[0].id;
-    document.getElementById('plat-o').innerHTML=PL.map(p=>`
-      <div class="ro${S.plat===p.id?' sel':''}" onclick="selPl('${p.id}')">
-        <div class="rd"></div><div style="font-size:17px">${p.i}</div><div class="rla">${p.n}</div>
-      </div>`).join('');
-  }else{document.getElementById('plat-g').style.display='none';S.plat=sch.video_platform;}
-  if(tg?.MainButton){tg.MainButton.setText('Забронировать');tg.MainButton.show();tg.MainButton.onClick(submitBooking);document.getElementById('btn-book').style.display='none';}
+  return slots;
 }
-function selPl(id){S.plat=id;document.querySelectorAll('.ro').forEach(e=>e.classList.remove('sel'));event.currentTarget.classList.add('sel');}
-function vf(f){
-  if(f==='n'){const v=document.getElementById('inp-n').value.trim(),ok=v.length>=2;document.getElementById('inp-n').classList.toggle('er',!ok);document.getElementById('err-n').classList.toggle('show',!ok);return ok;}
-  if(f==='e'){const v=document.getElementById('inp-e').value.trim(),ok=!v||/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);document.getElementById('inp-e').classList.toggle('er',!ok);document.getElementById('err-e').classList.toggle('show',!ok);return ok;}
-  return true;
-}
-async function submitBooking(){
-  if(!vf('n')){toast('Введите ваше имя','err');return;}
-  if(!vf('e')){toast('Некорректный email','err');return;}
-  const name=document.getElementById('inp-n').value.trim();
-  const email=document.getElementById('inp-e').value.trim();
-  const notes=document.getElementById('inp-no').value.trim();
-  const btn=document.getElementById('btn-book');btn.disabled=true;btn.textContent='Отправляем...';
-  if(tg?.MainButton)tg.MainButton.showProgress();
-  try{
-    const r=await post('/api/bookings',{schedule_id:S.sch.id,guest_name:name,
-      guest_contact:email||(TGU?.username?'@'+TGU.username:String(TGU?.id||'guest')),
-      guest_telegram_id:TGU?.id||null,scheduled_time:`${S.date}T${S.time}:00`,
-      notes:notes||null,location_type:S.plat||null});
-    if(tg?.MainButton){tg.MainButton.hideProgress();tg.MainButton.hide();}
-    if(tg?.HapticFeedback)tg.HapticFeedback.notificationOccurred('success');
-    renderOk(r);show('ok');
-  }catch(e){
-    if(tg?.MainButton)tg.MainButton.hideProgress();btn.disabled=false;btn.textContent='Забронировать';
-    if(e.message?.includes('409')||e.message?.toLowerCase().includes('already')){toast('Этот слот уже занят — выберите другое время','err');back();}
-    else toast('Ошибка: '+e.message,'err');
-    if(tg?.HapticFeedback)tg.HapticFeedback.notificationOccurred('error');
-  }
-}
-function renderOk(b){
-  const d=new Date(S.date),dur=S.sch?.duration||30,dn=DAYF[d.getDay()===0?6:d.getDay()-1];
-  const[h,mn]=S.time.split(':').map(Number),em=h*60+mn+dur;
-  document.getElementById('s-date').textContent=`${dn}, ${d.getDate()} ${GEN[d.getMonth()]}`;
-  document.getElementById('s-time').textContent=`${S.time} — ${p2(Math.floor(em/60)%24)}:${p2(em%60)}`;
-  document.getElementById('s-dur').textContent=dur+' минут';
-  if(b.meeting_link){S.mlink=b.meeting_link;document.getElementById('s-pr').style.display='flex';
-    document.getElementById('s-pl').textContent=PL.find(p=>p.id===S.plat)?.n||'Онлайн';}
-  const pend=b.status==='pending'||b.status==='pending_organizer_approval';
-  if(pend){document.getElementById('s-pend').style.display='block';
-    document.getElementById('ok-t').textContent='Заявка отправлена!';
-    document.getElementById('ok-s').textContent='Ожидайте подтверждения специалиста';
-    document.getElementById('ok-i').textContent='⏳';
-    document.getElementById('ok-i').style.background='rgba(245,158,11,.13)';}
-}
-function cpLink(){if(!S.mlink)return;navigator.clipboard.writeText(S.mlink).then(()=>toast('Ссылка скопирована')).catch(()=>toast('Не удалось скопировать','err'));}
-function closeTG(){if(tg)tg.close();else goRoot();}
 
-let allM=[];
-async function loadMeetings(){
-  document.getElementById('ml').innerHTML='<div class="lc"><div class="spin"></div><div>Загрузка...</div></div>';
-  if(!TGU){document.getElementById('ml').innerHTML=eH('🔒','Войдите через Telegram','Откройте из чата с ботом');return;}
-  try{const r=await get(`/api/bookings?telegram_id=${TGU.id}`);allM=r.bookings||[];rMeets(S.tab);}
-  catch(e){document.getElementById('ml').innerHTML=`<div class="emp"><div class="emp-i">⚠️</div><button class="btn btn-g" style="max-width:160px;margin:12px auto 0" onclick="loadMeetings()">Повторить</button></div>`;}
+async function createBooking(bookingData) {
+  return apiFetch('/api/bookings', {
+    method: 'POST',
+    body: JSON.stringify(bookingData)
+  });
 }
-function switchTab(t,el){S.tab=t;document.querySelectorAll('#screen-meetings .tab').forEach(e=>e.className='tab off');el.className='tab on';rMeets(t);}
-function rMeets(tab){
-  const now=new Date();let list=allM;
-  if(tab==='up')list=allM.filter(m=>new Date(m.scheduled_time)>now&&m.status!=='cancelled');
-  else if(tab==='hist')list=allM.filter(m=>new Date(m.scheduled_time)<=now||m.status==='cancelled');
-  if(!list.length){document.getElementById('ml').innerHTML=eH('📭','Нет встреч','Запишитесь к специалисту через ссылку');return;}
-  document.getElementById('ml').innerHTML=list.map(m=>mCard(m)).join('');
+
+// ============================================================
+// DATE HELPERS
+// ============================================================
+
+/** Format date as YYYY-MM-DD in LOCAL timezone (Issue 3) */
+function formatDateLocal(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 }
-const STE={confirmed:{cls:'c',lbl:'Подтверждена',bc:'b-c'},pending:{cls:'p',lbl:'Ожидает',bc:'b-p'},
-  pending_organizer_approval:{cls:'p',lbl:'Ожидает подтверждения',bc:'b-p'},
-  cancelled:{cls:'x',lbl:'Отменена',bc:'b-x'},completed:{cls:'d',lbl:'Завершена',bc:'b-d'}};
-function mCard(m){
-  const dt=new Date(m.scheduled_time),st=STE[m.status]||STE.pending;
-  const iF=dt>new Date()&&m.status!=='cancelled';
-  const ttl=m.meeting_title||m.schedules?.title||'Встреча';
-  const dstr=`${dt.getDate()} ${GEN[dt.getMonth()]} · ${p2(dt.getHours())}:${p2(dt.getMinutes())}`;
-  return `<div class="mc ${st.cls}" onclick="openDet('${m.id}')">
-    <div class="mc-t">${esc(ttl)}</div><div class="mc-r">📅 ${dstr}</div>
-    ${m.duration_minutes?`<div class="mc-r">⏱ ${m.duration_minutes} мин</div>`:''}
-    <div class="mc-f"><span class="bg ${st.bc}">${st.lbl}</span></div>
-    <div class="mc-a">
-      <div class="mcb" onclick="event.stopPropagation();openDet('${m.id}')">Подробнее</div>
-      ${iF?`<div class="mcb red" onclick="event.stopPropagation();openMo('${m.id}','${esc(ttl)}')">Отменить</div>`:''}
-    </div></div>`;
-}
-function openDet(id){
-  const m=allM.find(x=>x.id===id);if(!m)return;
-  const dt=new Date(m.scheduled_time),st=STE[m.status]||STE.pending;
-  const iF=dt>new Date()&&m.status!=='cancelled';
-  const ttl=m.meeting_title||m.schedules?.title||'Встреча';
-  const dstr=`${DAYF[dt.getDay()===0?6:dt.getDay()-1]}, ${dt.getDate()} ${GEN[dt.getMonth()]}`;
-  const tstr=`${p2(dt.getHours())}:${p2(dt.getMinutes())}`;
-  let h=`<div style="padding-bottom:13px">
-    <div style="font-family:'Syne',sans-serif;font-size:19px;font-weight:800;margin-bottom:7px">${esc(ttl)}</div>
-    <span class="bg ${st.bc}">${st.lbl}</span></div>
-    <div class="dc"><div class="dcs">Время и место</div>
-      <div class="dcr"><div class="dci">📅</div><div class="dcv">${dstr}</div></div>
-      <div class="dcr"><div class="dci">⏰</div><div class="dcv">${tstr}${m.duration_minutes?' · '+m.duration_minutes+' мин':''}</div></div>
-      ${m.location_type?`<div class="dcr"><div class="dci">🎥</div><div class="dcv">${pln(m.location_type)}</div></div>`:''}
-      ${m.meeting_link?`<div class="dcr"><div class="dci">🔗</div><div class="dcv" style="word-break:break-all;font-size:12px;color:var(--accent2)">${m.meeting_link}</div><div class="dcl" onclick="cp('${m.meeting_link}');toast('Ссылка скопирована')">Копировать</div></div>`:''}
+
+// ============================================================
+// RENDER — BOOKING MODE
+// ============================================================
+
+function renderApp() {
+  const app = document.getElementById('app');
+
+  app.innerHTML = `
+    ${state.error ? `<div class="error">${state.error}</div>` : ''}
+
+    <div class="meeting-card">
+      <div class="meeting-title">${escHtml(state.meetingType.title)}</div>
+      <div class="meeting-meta">
+        <div class="meta-item"><span>⏱</span><span>${state.meetingType.duration} мин</span></div>
+      </div>
+      ${state.meetingType.description
+        ? `<div class="meeting-description">${escHtml(state.meetingType.description)}</div>`
+        : ''}
     </div>
-    <div class="dc"><div class="dcs">Ваши данные</div>
-      <div class="dcr"><div class="dci">👤</div><div class="dcv">${esc(m.guest_name||'')}</div></div>
-      ${m.guest_contact?`<div class="dcr"><div class="dci">📧</div><div class="dcv">${esc(m.guest_contact)}</div></div>`:''}
+
+    <!-- STEP: Calendar -->
+    <div id="step-calendar">
+      <div class="section-title">Выберите дату</div>
+      <div id="calendar-container"></div>
     </div>
-    <div class="dc"><div class="dcs">История</div><div class="tl">
-      <div class="tli"><div class="tld"></div><div><div class="tlt">Встреча создана</div><div class="tldtt">${fdt(new Date(m.created_at||m.scheduled_time))}</div></div></div>
-      ${m.status==='confirmed'?'<div class="tli"><div class="tld"></div><div><div class="tlt">Подтверждена</div></div></div>':''}
-      ${m.status==='cancelled'?'<div class="tli"><div class="tld er"></div><div><div class="tlt" style="color:#FCA5A5">Отменена</div></div></div>':''}
-    </div></div>`;
-  if(iF)h+=`<div style="display:flex;gap:9px;padding-top:6px">
-    ${m.meeting_link?`<button class="btn btn-p" style="flex:1" onclick="cp('${m.meeting_link}');toast('Ссылка скопирована')">Ссылка на встречу</button>`:''}
-    <button class="btn btn-d" style="flex:1" onclick="openMo('${m.id}','${esc(ttl)}')">Отменить</button></div>`;
-  document.getElementById('detail-b').innerHTML=h;show('detail');
+
+    <!-- STEP: Time slots (Issue 5: back button) -->
+    <div id="step-slots" class="hidden">
+      <button class="back-btn" onclick="goBack('calendar')">← Изменить дату</button>
+      <div class="section-title">Выберите время</div>
+      <div id="time-slots"></div>
+    </div>
+
+    <!-- STEP: Form (Issue 5: back button) -->
+    <div id="step-form" class="hidden">
+      <button class="back-btn" onclick="goBack('slots')">← Изменить время</button>
+      <div id="summary-container"></div>
+      <div class="section-title">Ваши данные</div>
+      <div class="form-group">
+        <label class="form-label">Ваше имя <span class="required">*</span></label>
+        <input type="text" class="form-input" id="guest-name" placeholder="Иван Иванов">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email или Telegram <span class="required">*</span></label>
+        <input type="text" class="form-input" id="guest-contact" placeholder="@username или email@example.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Дополнительно</label>
+        <textarea class="form-input" id="guest-notes" placeholder="Что хотите обсудить?"></textarea>
+      </div>
+      <button class="submit-btn" id="submit-btn" onclick="submitBooking()">
+        ✅ Подтвердить бронирование
+      </button>
+    </div>
+
+    <div id="step-success" class="hidden"></div>
+  `;
+
+  renderCalendar();
+  showStep('calendar');
 }
 
-async function loadScheds(){
-  document.getElementById('sl').innerHTML='<div class="lc"><div class="spin"></div><div>Загрузка...</div></div>';
-  if(!TGU){document.getElementById('sl').innerHTML=eH('🔒','Войдите через Telegram','');return;}
-  try{
-    const[sr,br]=await Promise.allSettled([get(`/api/schedules?telegram_id=${TGU.id}`),get(`/api/bookings?telegram_id=${TGU.id}`)]);
-    S.scheds=sr.status==='fulfilled'?sr.value.schedules||[]:[];
-    S.incB=br.status==='fulfilled'?(br.value.bookings||[]).filter(b=>b.organizer_telegram_id===TGU.id):[];
-    rSchTab(S.schtab);
-  }catch(e){document.getElementById('sl').innerHTML=`<div class="emp"><div class="emp-i">⚠️</div><button class="btn btn-g" style="max-width:160px;margin:12px auto" onclick="loadScheds()">Повторить</button></div>`;}
+// Issue 5: back navigation
+window.goBack = function(to) {
+  if (to === 'calendar') {
+    state.selectedTime = null;
+    showStep('calendar');
+  } else if (to === 'slots') {
+    state.selectedTime = null;
+    showStep('slots');
+  }
+};
+
+function showStep(step) {
+  state.step = step;
+  ['calendar', 'slots', 'form', 'success'].forEach(s => {
+    const el = document.getElementById(`step-${s}`);
+    if (el) el.classList.toggle('hidden', s !== step);
+  });
 }
-function switchST(t,el){S.schtab=t;document.querySelectorAll('#screen-schedules .tab').forEach(e=>e.className='tab off');el.className='tab on';rSchTab(t);}
-function rSchTab(tab){
-  const el=document.getElementById('sl');
-  if(tab==='s'){
-    if(!S.scheds.length){el.innerHTML=eH('📅','Нет расписаний','Создайте расписание через бота: /create');return;}
-    el.innerHTML=S.scheds.map(sch=>{
-      const link=`${location.origin}${location.pathname}?schedule_id=${sch.id}`;
-      const cnt=S.incB.filter(b=>b.schedule_id===sch.id&&b.status!=='cancelled').length;
-      return `<div class="schc"><div class="schc-t">${esc(sch.title)}</div>
-        <div class="schc-m">${sch.duration} мин · ${sch.work_hours_start||'09:00'}–${sch.work_hours_end||'18:00'} · ${pln(sch.video_platform)}</div>
-        <div class="schc-f">
-          <div class="schc-l" onclick="event.stopPropagation();cp('${link}');toast('Ссылка скопирована')">Скопировать ссылку</div>
-          <div style="font-size:12px;color:var(--text2)">${cnt} записей</div>
-        </div></div>`;
-    }).join('');
-  }else{
-    const inc=S.incB.filter(b=>b.status!=='cancelled').sort((a,b)=>new Date(a.scheduled_time)-new Date(b.scheduled_time));
-    if(!inc.length){el.innerHTML=eH('📭','Нет входящих записей','Клиенты запишутся через вашу ссылку');return;}
-    el.innerHTML=inc.map(b=>{
-      const dt=new Date(b.scheduled_time),ttl=b.meeting_title||b.schedules?.title||'Встреча',st=STE[b.status]||STE.pending;
-      return `<div class="ibc">
-        <div class="ibc-n">${esc(b.guest_name)}</div>
-        <div class="ibc-m">📅 ${dt.getDate()} ${GEN[dt.getMonth()]} · ${p2(dt.getHours())}:${p2(dt.getMinutes())} · ${esc(ttl)}</div>
-        ${b.guest_contact?`<div class="ibc-m" style="margin-top:3px">📧 ${esc(b.guest_contact)}</div>`:''}
-        <div style="margin-top:8px"><span class="bg ${st.bc}">${st.lbl}</span></div>
-        ${b.meeting_link?`<div style="margin-top:9px"><button class="btn btn-g" style="padding:9px" onclick="cp('${b.meeting_link}');toast('Ссылка скопирована')">Скопировать ссылку встречи</button></div>`:''}
+
+function renderCalendar() {
+  const container = document.getElementById('calendar-container');
+  if (!container) return;
+
+  const year = state.currentMonth.getFullYear();
+  const month = state.currentMonth.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const monthNames = ['Январь','Февраль','Март','Апрель','Май','Июнь',
+                      'Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+
+  const isCurrentMonth = (month === today.getMonth() && year === today.getFullYear());
+
+  let html = `
+    <div class="calendar-header">
+      <div class="calendar-month">${monthNames[month]} ${year}</div>
+      <div class="calendar-nav">
+        <button onclick="changeMonth(-1)" ${isCurrentMonth ? 'disabled' : ''}>←</button>
+        <button onclick="changeMonth(1)">→</button>
+      </div>
+    </div>
+    <div class="calendar">
+  `;
+
+  ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].forEach(d => {
+    html += `<div class="calendar-day-header">${d}</div>`;
+  });
+
+  const startDOW = firstDay.getDay(); // 0=Sun
+  const offset = startDOW === 0 ? 6 : startDOW - 1;
+  for (let i = 0; i < offset; i++) html += '<div></div>';
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const date = new Date(year, month, day);
+    const isPast = date < today;
+    const isToday = date.getTime() === today.getTime();
+    const dateStr = formatDateLocal(date);
+    const isSelected = state.selectedDate === dateStr;
+    const dow = date.getDay() === 0 ? 6 : date.getDay() - 1;
+    const isWorkDay = state.meetingType.work_days.includes(dow);
+    const isAvail = !isPast && isWorkDay;
+
+    let cls = 'calendar-day';
+    if (!isAvail) cls += ' disabled';
+    else cls += ' available';
+    if (isToday) cls += ' today';
+    if (isSelected) cls += ' selected';
+
+    html += `
+      <div class="${cls}" ${isAvail ? `onclick="selectDate('${dateStr}')"` : ''}>
+        ${day}
       </div>`;
-    }).join('');
+  }
+
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+window.changeMonth = function(dir) {
+  state.currentMonth = new Date(
+    state.currentMonth.getFullYear(),
+    state.currentMonth.getMonth() + dir,
+    1
+  );
+  renderCalendar();
+};
+
+window.selectDate = async function(dateStr) {
+  state.selectedDate = dateStr;
+  state.selectedTime = null;
+  state.availableSlots = [];
+
+  renderCalendar();
+  showStep('slots');
+
+  const slotsEl = document.getElementById('time-slots');
+  slotsEl.innerHTML = `<div class="loading"><div class="loading-spinner"></div><p>Загрузка...</p></div>`;
+
+  try {
+    const date = new Date(dateStr + 'T12:00:00'); // avoid timezone shift
+    state.availableSlots = await loadAvailableSlots(state.meetingType.id, date);
+    renderTimeSlots();
+  } catch (e) {
+    slotsEl.innerHTML = `<div class="error"><p>Не удалось загрузить слоты: ${e.message}</p></div>`;
+  }
+};
+
+function renderTimeSlots() {
+  const slotsEl = document.getElementById('time-slots');
+  if (!slotsEl) return;
+
+  if (state.availableSlots.length === 0) {
+    slotsEl.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">😔</div>
+        <p>На эту дату нет свободных слотов</p>
+        <p style="font-size:13px;margin-top:6px;color:#999;">Выберите другой день</p>
+      </div>`;
+    return;
+  }
+
+  slotsEl.innerHTML = state.availableSlots.map(slot => {
+    const sel = state.selectedTime === slot.time;
+    return `<div class="time-slot ${sel ? 'selected' : ''}" onclick="selectTime('${slot.time}')">${slot.time}</div>`;
+  }).join('');
+}
+
+// Issue 1: Fixed — use offClick before onClick to prevent listener accumulation
+window.selectTime = function(time) {
+  state.selectedTime = time;
+
+  // Update slot visuals WITHOUT rebuilding all steps
+  renderTimeSlots();
+
+  // Show form step
+  showStep('form');
+
+  // Autofill from Telegram
+  const nameInput = document.getElementById('guest-name');
+  const contactInput = document.getElementById('guest-contact');
+  if (nameInput && !nameInput.value) {
+    const u = tg?.initDataUnsafe?.user;
+    if (u) {
+      if (u.first_name) nameInput.value = u.first_name + (u.last_name ? ' ' + u.last_name : '');
+      if (u.username) contactInput.value = '@' + u.username;
+    }
+  }
+
+  // Render summary
+  renderSummary();
+
+  // Issue 1: Fix MainButton listener accumulation
+  if (tg?.MainButton) {
+    tg.MainButton.offClick(submitBooking);   // remove previous listener first
+    tg.MainButton.setText('Подтвердить бронирование');
+    tg.MainButton.show();
+    tg.MainButton.onClick(submitBooking);
+    // Hide HTML button when Telegram MainButton is available
+    const btn = document.getElementById('submit-btn');
+    if (btn) btn.style.display = 'none';
+  }
+
+  // Scroll to form top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+function renderSummary() {
+  const container = document.getElementById('summary-container');
+  if (!container || !state.selectedDate || !state.selectedTime) return;
+
+  // Parse date in local timezone
+  const [y, m, d] = state.selectedDate.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  const dateStr = date.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
+
+  container.innerHTML = `
+    <div class="summary-card">
+      <div class="summary-item"><span class="summary-icon">📅</span><span>${dateStr}</span></div>
+      <div class="summary-item"><span class="summary-icon">⏰</span><span>${state.selectedTime}</span></div>
+      <div class="summary-item"><span class="summary-icon">⏱</span><span>${state.meetingType.duration} мин</span></div>
+    </div>`;
+}
+
+// ============================================================
+// SUBMIT BOOKING
+// ============================================================
+
+window.submitBooking = async function() {
+  const name = document.getElementById('guest-name')?.value.trim();
+  const contact = document.getElementById('guest-contact')?.value.trim();
+  const notes = document.getElementById('guest-notes')?.value.trim();
+
+  if (!name || !contact) {
+    alert('Пожалуйста, заполните имя и контакт');
+    return;
+  }
+  if (!state.selectedDate || !state.selectedTime) {
+    alert('Выберите дату и время');
+    return;
+  }
+
+  // Disable button
+  const btn = document.getElementById('submit-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Отправляем...'; }
+  if (tg?.MainButton) tg.MainButton.showProgress();
+
+  const bookingData = {
+    schedule_id: state.meetingType.id,
+    guest_name: name,
+    guest_contact: contact,
+    guest_telegram_id: tg?.initDataUnsafe?.user?.id || null,
+    scheduled_time: `${state.selectedDate}T${state.selectedTime}:00`,
+    notes: notes || null
+  };
+
+  try {
+    const result = await createBooking(bookingData);
+    if (tg?.MainButton) { tg.MainButton.hideProgress(); tg.MainButton.hide(); }
+    showSuccess(result);
+  } catch (e) {
+    if (tg?.MainButton) tg.MainButton.hideProgress();
+    if (btn) { btn.disabled = false; btn.textContent = '✅ Подтвердить бронирование'; }
+    const errDiv = document.getElementById('booking-error');
+    if (errDiv) {
+      errDiv.textContent = `❌ ${e.message}`;
+      errDiv.style.display = 'block';
+    }
+  }
+};
+
+function showSuccess(booking) {
+  showStep('success');
+  const el = document.getElementById('step-success');
+  if (!el) return;
+
+  // Parse time from booking
+  let dateLabel = '';
+  let timeLabel = '';
+  try {
+    const dt = new Date(booking.scheduled_time);
+    dateLabel = dt.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
+    timeLabel = dt.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+  } catch(e) {
+    dateLabel = state.selectedDate;
+    timeLabel = state.selectedTime;
+  }
+
+  el.innerHTML = `
+    <div class="success">
+      <h2>✅ Встреча забронирована!</h2>
+      <p>Вы получите подтверждение в Telegram.</p>
+    </div>
+    <div class="summary-card">
+      <div class="summary-item"><span class="summary-icon">📅</span><span>${dateLabel}</span></div>
+      <div class="summary-item"><span class="summary-icon">⏰</span><span>${timeLabel}</span></div>
+      <div class="summary-item"><span class="summary-icon">👤</span><span>${escHtml(booking.guest_name)}</span></div>
+      ${booking.meeting_link ? `
+        <div class="meeting-link">
+          <div style="margin-bottom:6px;">🎥 <strong>Ссылка на встречу:</strong></div>
+          <a href="${booking.meeting_link}" target="_blank">${booking.meeting_link}</a>
+        </div>` : ''}
+    </div>
+    <button class="submit-btn" onclick="if(tg){tg.close();}">Закрыть</button>
+  `;
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ============================================================
+// CABINET MODE — Issue 4
+// ============================================================
+
+async function initCabinet() {
+  document.getElementById('header-subtitle').textContent = 'Личный кабинет';
+
+  const app = document.getElementById('app');
+  app.innerHTML = `<div class="loading"><div class="loading-spinner"></div><p>Загрузка...</p></div>`;
+
+  const tgUser = tg?.initDataUnsafe?.user;
+
+  if (!tgUser || !tgUser.id) {
+    app.innerHTML = `
+      <div class="error">
+        <h3>⚠️ Ошибка доступа</h3>
+        <p>Откройте приложение через Telegram-бот.</p>
+      </div>`;
+    return;
+  }
+
+  try {
+    const data = await apiFetch(`/api/schedules?telegram_id=${tgUser.id}`);
+    renderCabinet(data.schedules || [], tgUser);
+  } catch (e) {
+    app.innerHTML = `
+      <div class="error">
+        <h3>⚠️ Ошибка загрузки</h3>
+        <p>${e.message}</p>
+        <button class="submit-btn" style="margin-top:12px;" onclick="initCabinet()">🔄 Повторить</button>
+      </div>`;
   }
 }
 
-function openMo(id,ttl){S.cid=id;document.getElementById('mo-t').textContent=`Встреча "${ttl}" будет отменена.`;document.getElementById('mo').classList.add('show');}
-function cmo(e){if(e&&e.target!==document.getElementById('mo'))return;document.getElementById('mo').classList.remove('show');S.cid=null;}
-async function doCancel(){
-  if(!S.cid)return;document.getElementById('mo').classList.remove('show');
-  try{
-    await patch(`/api/bookings/${S.cid}/cancel`);
-    const m=allM.find(x=>x.id===S.cid);if(m)m.status='cancelled';
-    toast('Встреча отменена');if(tg?.HapticFeedback)tg.HapticFeedback.notificationOccurred('success');
-    rMeets(S.tab);if(S.scr==='detail')back();
-  }catch(e){toast('Ошибка: '+e.message,'err');}
-  S.cid=null;
+function renderCabinet(schedules, tgUser) {
+  const app = document.getElementById('app');
+  const name = tgUser.first_name || 'Пользователь';
+
+  if (schedules.length === 0) {
+    app.innerHTML = `
+      <div style="margin-bottom:20px;">
+        <div style="font-size:19px;font-weight:700;">👋 Привет, ${escHtml(name)}!</div>
+        <div style="font-size:14px;color:var(--tg-theme-hint-color,#999);margin-top:4px;">Личный кабинет</div>
+      </div>
+      <div class="empty-state">
+        <div class="empty-state-icon">📭</div>
+        <p style="font-weight:600;margin-bottom:8px;">Расписаний пока нет</p>
+        <p style="font-size:13px;">Создайте расписание через бота<br>и ссылка появится здесь</p>
+      </div>`;
+    return;
+  }
+
+  let html = `
+    <div style="margin-bottom:20px;">
+      <div style="font-size:19px;font-weight:700;">👋 Привет, ${escHtml(name)}!</div>
+      <div style="font-size:14px;color:var(--tg-theme-hint-color,#999);margin-top:4px;">Ваши расписания</div>
+    </div>`;
+
+  schedules.forEach(s => {
+    const bookingUrl = `${window.location.origin}${window.location.pathname}?schedule_id=${s.id}`;
+    html += `
+      <div class="cabinet-schedule-card">
+        <div class="cabinet-schedule-title">📋 ${escHtml(s.title)}</div>
+        <div class="cabinet-schedule-meta">
+          ⏱ ${s.duration} мин &nbsp;·&nbsp; 🎥 ${escHtml(s.video_platform || '')}
+        </div>
+        <div id="link-display-${s.id}" style="font-size:12px;color:var(--tg-theme-hint-color,#999);margin-bottom:10px;word-break:break-all;">
+          🔗 ${bookingUrl}
+        </div>
+        <div class="cabinet-btn-row">
+          <button class="cabinet-btn cabinet-btn-primary" onclick="copyLink('${escHtml(bookingUrl)}', '${s.id}')">
+            📋 Скопировать ссылку
+          </button>
+          <button class="cabinet-btn cabinet-btn-secondary" onclick="openSchedule('${s.id}')">
+            👁 Открыть
+          </button>
+        </div>
+        <div id="copy-ok-${s.id}" style="display:none;color:green;font-size:13px;margin-top:8px;text-align:center;">
+          ✅ Скопировано!
+        </div>
+      </div>`;
+  });
+
+  app.innerHTML = html;
 }
 
-function tog(k){S.sets[k]=!S.sets[k];applySets();localStorage.setItem('dv_s',JSON.stringify(S.sets));if(tg?.HapticFeedback)tg.HapticFeedback.impactOccurred('light');}
-function applySets(){['no','24','1h'].forEach(k=>{const e=document.getElementById('t-'+k);if(e)e.className='tgl '+(S.sets[k]?'on':'off');});}
-function hlp(){if(tg)tg.openLink('https://t.me/do_vstrechi_bot');}
+window.copyLink = function(url, scheduleId) {
+  navigator.clipboard.writeText(url)
+    .then(() => {
+      const ok = document.getElementById(`copy-ok-${scheduleId}`);
+      if (ok) {
+        ok.style.display = 'block';
+        setTimeout(() => { ok.style.display = 'none'; }, 2500);
+      }
+    })
+    .catch(() => {
+      // Fallback for older iOS
+      const ta = document.createElement('textarea');
+      ta.value = url;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      const ok = document.getElementById(`copy-ok-${scheduleId}`);
+      if (ok) { ok.style.display = 'block'; setTimeout(() => { ok.style.display = 'none'; }, 2500); }
+    });
+};
 
-function d2s(d){return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;}
-function p2(n){return String(n).padStart(2,'0');}
-function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function fdt(d){return `${d.getDate()} ${GEN[d.getMonth()]}, ${p2(d.getHours())}:${p2(d.getMinutes())}`;}
-function pln(id){return PL.find(p=>p.id===id)?.n||id||'Онлайн';}
-function cp(t){navigator.clipboard.writeText(t).catch(()=>{});}
-function eH(i,t,d){return `<div class="emp"><div class="emp-i">${i}</div><div class="emp-t">${t}</div><div class="emp-d">${d}</div></div>`;}
+window.openSchedule = function(scheduleId) {
+  const url = `${window.location.origin}${window.location.pathname}?schedule_id=${scheduleId}`;
+  // Reload page with schedule_id — opens booking flow
+  window.location.href = url;
+};
 
-let _tt=null;
-function toast(msg,type=''){
-  const el=document.getElementById('toast');el.textContent=msg;el.className=type?type:'';
-  clearTimeout(_tt);setTimeout(()=>el.classList.add('show'),10);_tt=setTimeout(()=>el.classList.remove('show'),3000);
+// ============================================================
+// UTILS
+// ============================================================
+
+function escHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
 }
 
-document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();
+// ============================================================
+// INIT — routes to cabinet or booking mode
+// ============================================================
+
+async function init() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const scheduleId = urlParams.get('schedule_id');
+
+  if (tg) {
+    tg.enableClosingConfirmation();
+    if (tg.themeParams?.bg_color) {
+      document.body.style.backgroundColor = tg.themeParams.bg_color;
+    }
+
+    // Issue 5: Telegram BackButton
+    tg.BackButton.onClick(() => {
+      if (state.mode === 'cabinet') {
+        tg.close();
+        return;
+      }
+      if (state.step === 'slots') { goBack('calendar'); tg.BackButton.hide(); }
+      else if (state.step === 'form') { goBack('slots'); }
+      else { tg.BackButton.hide(); }
+    });
+  }
+
+  if (!scheduleId) {
+    // Issue 4: Cabinet mode
+    state.mode = 'cabinet';
+    await initCabinet();
+    return;
+  }
+
+  // Booking mode
+  state.mode = 'booking';
+
+  try {
+    state.meetingType = await loadMeetingType(scheduleId);
+    renderApp();
+
+    if (tg?.BackButton) {
+      // Show back button when moving away from calendar
+      // (handled in showStep logic)
+    }
+  } catch (e) {
+    console.error('Init error:', e);
+    document.getElementById('app').innerHTML = `
+      <div class="error">
+        <h3>⚠️ Ошибка загрузки</h3>
+        <p>${e.message}</p>
+        <button class="submit-btn" style="margin-top:12px;" onclick="init()">🔄 Повторить</button>
+      </div>`;
+  }
+}
+
+// Show/hide Telegram BackButton based on step
+const _origShowStep = showStep;
+window.showStep = function(step) {
+  _origShowStep(step);
+  if (tg?.BackButton) {
+    if (step === 'calendar') tg.BackButton.hide();
+    else tg.BackButton.show();
+  }
+};
+
+// Start
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
 </script>
 </body>
 </html>
